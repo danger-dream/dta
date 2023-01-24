@@ -1,0 +1,45 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+	"appId": "BobForElectron",
+	"asar": true,
+	"icon": "public/favicon.ico",
+	"directories": {
+		"output": "release"
+	},
+	"files": [
+		"dist-electron",
+		"dist"
+	],
+	"extraResources": [
+		{
+			"from": "build/ShareX.exe",
+			"to": "ShareX.exe"
+		}
+	],
+	"mac": {
+		"artifactName": "${productName}_${version}.${ext}",
+		"target": [
+			"dmg"
+		]
+	},
+	"win": {
+		"target": [
+			{
+				"target": "nsis",
+				"arch": [
+					"x64"
+				]
+			}
+		],
+		"artifactName": "${productName}_${version}.${ext}"
+	},
+	"nsis": {
+		"oneClick": false,
+		"perMachine": false,
+		"allowToChangeInstallationDirectory": true,
+		"deleteAppDataOnUninstall": false
+	},
+	"afterPack": "build/afterPack.js"
+}

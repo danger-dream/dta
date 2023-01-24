@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="60px" height="60px" viewBox="0 0 60 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 61.2 (89653) - https://sketch.com -->
+    <title>favicon</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <polygon id="path-1" points="29.16 14.7231 40.5 3.55385 26.46 0 0 23.35385 12.78 44 38.7 16.0769"></polygon>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="logo2">
+            <circle id="Oval" fill="#1973E8" fill-rule="nonzero" cx="30.015" cy="29.98475" r="29.98475"></circle>
+            <g id="Clipped" transform="translate(0.000000, 16.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <g id="Path"></g>
+                <circle id="Oval" fill="#0C55B5" fill-rule="nonzero" mask="url(#mask-2)" cx="30" cy="14" r="30"></circle>
+            </g>
+            <path d="M21.7324,27.1954 C21.7324,18.44705 26.93045,13.249 35.6788,13.249 L39.25735,13.249 C40.36195,13.249 41.25735,14.14445 41.25735,15.24905 L41.25735,18.2222 C41.25735,19.3268 40.36195,20.2222 39.25735,20.2222 L35.6788,20.2222 C31.8276,20.2222 28.7056,23.34425 28.7056,27.1954 L28.7056,44.72035 C28.7056,45.82495 27.8102,46.72035 26.7056,46.72035 L23.7324,46.72035 C22.62785,46.72035 21.7324,45.82495 21.7324,44.72035 L21.7324,27.1954 Z" id="Path" fill="#FFFFFF"></path>
+            <rect id="Rectangle" fill="#FFFFFF" fill-rule="nonzero" x="24.17335" y="27.8926" width="14.6437" height="5.9272" rx="2.9636"></rect>
+        </g>
+    </g>
+</svg>

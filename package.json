@@ -1,0 +1,33 @@
+{
+	"name": "bob-for-electron",
+	"version": "1.0.0",
+	"main": "dist-electron/index.js",
+	"description": "bob for electron",
+	"private": true,
+	"debug": {
+		"env": {
+			"VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build && electron-builder"
+	},
+	"dependencies": {
+		"axios": "1.2.3"
+	},
+	"devDependencies": {
+		"element-plus": "2.2.28",
+		"vue": "3.2.45",
+		"@vitejs/plugin-vue": "4.0.0",
+		"electron": "22.0.3",
+		"electron-builder": "23.6.0",
+		"typescript": "4.9.4",
+		"vite": "4.0.4",
+		"vite-plugin-electron": "0.11.1",
+		"vite-plugin-electron-renderer": "0.11.4",
+		"sass": "1.57.1",
+		"unplugin-auto-import": "0.12.1",
+		"unplugin-vue-components": "0.22.12"
+	}
+}
