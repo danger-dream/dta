@@ -25,6 +25,7 @@ const instance = getCurrentInstance()
 const props = defineProps(['icon'])
 const opt = ref<Icon>({ width: 1024, height: 1024, body: '' })
 const cur = map[props.icon]
+
 if (typeof cur === 'string') {
 	opt.value.body = cur
 } else {
@@ -33,9 +34,12 @@ if (typeof cur === 'string') {
 </script>
 
 <template>
-	<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		xmlns:xlink="http://www.w3.org/1999/xlink"
 		aria-hidden="true" role="img" width="1em" height="1em"
-		:viewBox="`0 0 ${ opt.width } ${ opt.height }`" v-bind="instance.attrs"
+		:viewBox="`0 0 ${ opt.width } ${ opt.height }`"
+		v-bind="instance.attrs"
 		v-html="opt.body">
 	</svg>
 </template>

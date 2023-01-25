@@ -14,24 +14,28 @@ process.env.DIST_ELECTRON = __dirname
 process.env.DIST = join(process.env.DIST_ELECTRON, '../dist')
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL ? join(process.env.DIST_ELECTRON, '../public') : process.env.DIST
 let win: BrowserWindow | null = null
-const url = process.env.VITE_DEV_SERVER_URL
-const indexHtml = join(process.env.DIST, 'index.html')
 
-function createWindow() {
+app.whenReady().then(() => {
 	const primaryDisplay = screen.getPrimaryDisplay()
 	win = new BrowserWindow({
 		show: false, title: 'Bob for electron', icon: join(process.env.PUBLIC, 'favicon.ico'),
 		x: primaryDisplay.bounds.width - 450 - 40, y: 40, width: 450, height: 256,
-		resizable: true, backgroundColor: '#00000000',
-		alwaysOnTop: true, transparent: true, skipTaskbar: true, frame: false,
-		webPreferences: { nodeIntegration: true, contextIsolation: false, webSecurity: false }
+		resizable: true, backgroundColor: '#00000000', alwaysOnTop: true,
+		transparent: true, skipTaskbar: true, frame: false,
+		webPreferences: {
+			nodeIntegration: true, contextIsolation: false,
+			webSecurity: false, spellcheck: false
+		}
 	})
-	win.on('ready-to-show', show)
+	win.on('ready-to-show', () => {
+		win.show()
+		win.focus()
+	})
 	if (process.env.VITE_DEV_SERVER_URL) {
-		win.loadURL(url).catch()
+		win.loadURL(process.env.VITE_DEV_SERVER_URL).catch()
 		win.webContents.openDevTools()
 	} else {
-		win.loadFile(indexHtml).catch()
+		win.loadFile(join(process.env.DIST, 'index.html')).catch()
 	}
 	win.on('close', (e) => {
 		e.preventDefault()
@@ -44,22 +48,8 @@ function createWindow() {
 		url.startsWith('https:') && shell.openExternal(url).catch()
 		return { action: 'deny' }
 	})
-}
-
-function show() {
-	if (!win) return
-	if (win.isMinimized())
-		win.restore()
-	win.focus()
-	win.show()
-}
-
-app.whenReady().then(() => {
-	createWindow()
+	
 	Event(win).catch(() => app.exit(0))
 })
 
-app.on('window-all-closed', () => {
-	win = null
-	app.quit()
-})
+app.on('window-all-closed', () => app.exit(0))

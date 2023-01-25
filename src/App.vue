@@ -1,26 +1,21 @@
 <script setup lang="ts">
+import type { IConfig, ITranslateResult, UITranslate } from '../types'
+import { ipcRenderer, clipboard } from 'electron'
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { ElScrollbar, ElInput } from 'element-plus'
-import { ipcRenderer } from 'electron'
-import type { IConfig } from '../types'
-import { Language } from '../global'
-import { ITranslateResult, UITranslate } from '../types'
-import { UUID, isEmpty } from './utils'
-import { clipboard } from 'electron'
 import 'element-plus/theme-chalk/el-input.css'
 import 'element-plus/theme-chalk/el-scrollbar.css'
+import { Language } from '../global'
+import { UUID, isEmpty } from './utils'
 
 const shadow = ref<HTMLElement>(null as any)
-const loading_trans = ref('正在翻译...')
-let defaultSize = [] as number[]
-let last_translate_text = ''
-let translate_task_id = ''
-let translate_timeout: any = undefined
+let defaultWidth = 0
+let trans_task_id = ''
+let trans_timeout: any = undefined
 let lang_menu_close_timeout: any = undefined
 const input = ref<any>(null)
 const state = reactive({
 	config: {} as IConfig,
-	setting: false,
 	reverse: '',
 	auto_lang_test: '',
 	from: Language.自动检测,
@@ -30,26 +25,28 @@ const state = reactive({
 	text: '',
 	results: [] as UITranslate[]
 })
-//  获取配置文件
-ipcRenderer.invoke('get-config').then((res) => {
-	Object.assign(state.config, res)
-})
 
-ipcRenderer.on('clear', function () {
+//  启动时获取配置文件
+ipcRenderer.invoke('get-config').then((res) => Object.assign(state.config, res))
+
+//  窗口隐藏时调整清空界面
+ipcRenderer.on('clear', () => {
+	trans_task_id = ''
 	state.config.pinup = false
 	state.text = ''
 	state.results = []
+	onResize()
 })
 
-ipcRenderer.on('ocr-result', function (event, args) {
+//  ocr识别并翻译
+ipcRenderer.on('ocr-result', (event, args) => {
 	state.text = args.text
 	args.status && translate()
 })
 
-ipcRenderer.on('text-translate', function (event, args) {
-	if (state.loading) {
-		return
-	}
+//  文本翻译
+ipcRenderer.on('text-translate', (event, args) => {
+	if (state.loading) return
 	if (args === '~!@#empty') {
 		state.text = '未获取到可用的数据'
 	} else {
@@ -58,8 +55,15 @@ ipcRenderer.on('text-translate', function (event, args) {
 	}
 })
 
-ipcRenderer.on('translate-result', function (event, args: ITranslateResult) {
-	if (args.id !== translate_task_id) return
+//  图片识别结果
+ipcRenderer.on('text-result', (event, { status, text }) => {
+	if (state.loading) return
+	state.text = status ? text : 'OCR识别失败:' + text
+})
+
+//  单次翻译结果
+ipcRenderer.on('translate-result', (event, args: ITranslateResult) => {
+	if (args.id !== trans_task_id) return
 	let list = args.result
 	if (!Array.isArray(list)) {
 		list = [list]
@@ -73,18 +77,18 @@ ipcRenderer.on('translate-result', function (event, args: ITranslateResult) {
 	}
 	if (!state.results.find(x => x.loading)) {
 		state.loading = false
-		clearTimeout(translate_timeout)
-		translate_timeout = undefined
+		clearTimeout(trans_timeout)
+		trans_timeout = undefined
 		ipcRenderer.invoke('focus')
 	}
 	nextTick().then(() => onResize())
 })
-ipcRenderer.on('win-blur', () => translate_task_id = '')
 
-ipcRenderer.on('input-translate', inputFocus)
+// 文本框获取焦点
 ipcRenderer.on('win-show-focus', () => input.value?.ref?.focus())
 
-ipcRenderer.on('select-lang', function (event, args: { target: 'to' | 'from', lang: Language }) {
+//  选择语言
+ipcRenderer.on('select-lang', (event, args: { target: 'to' | 'from', lang: Language }) => {
 	(state as any)[args.target] = args.lang
 	if (args.target === 'from') {
 		if (state.from !== Language.自动检测 && state.from === state.to) {
@@ -97,27 +101,22 @@ ipcRenderer.on('select-lang', function (event, args: { target: 'to' | 'from', la
 	}
 	!isEmpty(state.text) && translate()
 })
+//  语言选择菜单关闭
 ipcRenderer.on('lang-menu-close', () => {
 	clearTimeout(lang_menu_close_timeout)
 	lang_menu_close_timeout = setTimeout(() => state.reverse = '', 150)
 })
 
-onMounted(() => {
-	nextTick().then(async () => {
-		defaultSize = await ipcRenderer.invoke('getSize')
-		onResize()
-		inputFocus()
-	})
-})
-
-function inputFocus() {
+onMounted(() => nextTick().then(async () => {
+	defaultWidth = await ipcRenderer.invoke('getWidth')
+	onResize()
 	ipcRenderer.invoke('focus').then(() => input.value?.ref?.focus())
-}
+}))
 
 function onResize() {
 	const height = shadow.value?.clientHeight + 60
-	ipcRenderer.invoke('setSize', { width: defaultSize[0], height })
-	setTimeout(() => ipcRenderer.invoke('setSize', { width: defaultSize[0], height }), 10)
+	ipcRenderer.invoke('setSize', { width: defaultWidth, height })
+	setTimeout(() => ipcRenderer.invoke('setSize', { width: defaultWidth, height }), 10)
 }
 
 function onPin() {
@@ -140,7 +139,7 @@ async function translate() {
 	state.text = state.text.trim()
 	const tlist = state.config.translate.filter(x => x.enable)
 	if (tlist.length < 1) return
-	last_translate_text = state.text
+	//  语言检测
 	state.loading = true
 	let from = state.from
 	state.auto_lang_test = ''
@@ -155,8 +154,9 @@ async function translate() {
 			to = Language.中文
 		}
 	}
+	//  每次调用一个翻译服务，不用等所有服务都出结束才看的到结果
 	state.results = []
-	translate_task_id = UUID()
+	trans_task_id = UUID()
 	for (const item of tlist) {
 		if (item.zh2en_enable) {
 			//  如果不是中转英，跳过
@@ -164,18 +164,14 @@ async function translate() {
 				continue
 			}
 		}
-		ipcRenderer.send('translate-item', { name: item.name, text: state.text, from, to, id: translate_task_id })
+		ipcRenderer.send('translate-item', { name: item.name, text: state.text, from, to, id: trans_task_id })
 		state.results.push({
-			name: item.name,
-			label: item.label,
-			text: '',
-			expand: false,
-			loading: true,
-			status: false,
-			isWord: false
+			name: item.name, label: item.label, text: '',
+			expand: false, loading: true, status: false, isWord: false
 		} as any)
 	}
-	translate_timeout = setTimeout(function () {
+	//  超时
+	trans_timeout = setTimeout(() => {
 		for (const item of state.results) {
 			if (item.loading) {
 				item.status = false
@@ -188,6 +184,7 @@ async function translate() {
 		ipcRenderer.invoke('focus')
 		nextTick().then(() => onResize())
 	}, 1000 * (state.config.timeout || 15))
+	//  调整窗口大小
 	nextTick().then(() => onResize())
 }
 
@@ -211,10 +208,8 @@ function onSelectLang(e: MouseEvent, target: 'from' | 'to') {
 	}
 	const el = e.target as HTMLElement
 	ipcRenderer.send('show-lang-menu', {
-		from: state.from, to: state.to,
-		target: state.reverse,
-		x: el.offsetLeft,
-		y: el.offsetTop + 20 + el.offsetHeight
+		from: state.from, to: state.to, target: state.reverse,
+		x: el.offsetLeft, y: el.offsetTop + 20 + el.offsetHeight
 	})
 }
 
@@ -232,6 +227,11 @@ function onExpand(item: any) {
 
 function getPath(svg: string): string {
 	return 'file:///' + window.process['env']['PUBLIC'] + '/svg/' + svg + '.svg'
+}
+
+async function playAudio(url: string) {
+	const audio = new Audio(url)
+	audio.play().then().catch()
 }
 </script>
 
@@ -299,38 +299,35 @@ function getPath(svg: string): string {
 					<template v-if="item.expand">
 						<div class="context">
 							<el-scrollbar max-height="400" always>
-								<div v-if="!item.isWord" v-html="item.loading ? loading_trans : item.text.split('\n').join('<br>')" style="padding-right: 10px;"></div>
-								<div v-else>
-									<div style="font-size: 15px; margin: 5px 0 10px;font-weight: bold;">
+								<div v-if="!item.isWord" v-html="item.loading ? '正在翻译...' : item.text.split('\n').join('<br>')" class="text"></div>
+								<div v-else class="word">
+									<div class="text">
 										{{ item.text }}
+										<Iconify icon="volume" class="volume" @click="playAudio(item.work_ext.dst_speak_url)" />
 									</div>
-									<div v-if="item.work_ext.us" style="display: flex; align-items: center; margin-bottom: 5px;" title="播放美式合成语音">
+									<div v-if="item.work_ext.us" class="phonetic" title="播放美式合成语音">
 										美 [{{ item.work_ext.us.phonetic }}]
-										<Iconify icon="volume" style="margin-left: 5px; font-size: 20px;cursor: pointer;" />
+										<Iconify icon="volume" class="volume" @click="playAudio(item.work_ext.us.speech)" />
 									</div>
-									<div v-if="item.work_ext.uk" style="display: flex; align-items: center; margin-bottom: 5px;" title="播放英式合成语音">
+									<div v-if="item.work_ext.uk" class="phonetic" title="播放英式合成语音">
 										英 [{{ item.work_ext.uk.phonetic }}]
-										<Iconify icon="volume" style="margin-left: 5px; font-size: 20px;cursor: pointer;" />
+										<Iconify icon="volume" class="volume" @click="playAudio(item.work_ext.uk.speech)" />
 									</div>
 									<template v-if="item.work_ext.explains">
-										<div v-for="(explain, i) in item.work_ext.explains" :key="i" style="display: flex; align-items: start; font-size: 13px;margin-bottom: 5px; padding-right: 10px;">
+										<div v-for="(explain, i) in item.work_ext.explains" :key="i" class="explains">
 											<template v-if="explain.includes('.')">
-												<div style="color: #A7A6A6;margin-right: 5px;min-width: 15px;max-width: 50px;">
-													{{ explain.split('.')[0] }}.
-												</div>
+												<div class="prefix">{{ explain.split('.')[0] }}.</div>
 												<div style="flex-grow: 1;">
 													{{ explain.split('.').slice(1).join('.') }}
 												</div>
 											</template>
-											<div v-else>
-												{{ explain }}
-											</div>
+											<div v-else>{{ explain }}</div>
 										</div>
 									</template>
 									<template v-if="item.work_ext.wfs">
-										<div v-for="(wf, i) in item.work_ext.wfs" :key="i" style="display: flex; align-items: center; font-size: 13px;">
+										<div v-for="(wf, i) in item.work_ext.wfs" :key="i" class="wfs">
 											<span>{{ wf.name }}:</span>
-											<span style="color: #3888EC; font-size: 14px;margin-left: 10px; cursor: pointer;">
+											<span class="value" @click="() => clipboard.writeText(wf.value)">
 												{{ wf.value }}
 											</span>
 										</div>

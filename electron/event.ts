@@ -112,14 +112,10 @@ export default async function (win: BrowserWindow) {
 		}
 	}
 	
-	function clearPage() {
-		win.webContents.send('clear')
-	}
-	
-	//  失去焦点时，如果不是钉住状态就隐藏窗口
-	win.on('blur', () => {
-		!conf.pinup && win.hide()
-	}).on('show', function () {
+	win
+	.on('blur', () => !conf.pinup && win.hide())
+	.on('hide', () => win.webContents.send('clear'))
+	.on('show', function () {
 		setTimeout(function () {
 			app.focus()
 			win.setAlwaysOnTop(true)
@@ -127,6 +123,7 @@ export default async function (win: BrowserWindow) {
 			win.webContents.send('win-show-focus')
 		}, 100)
 	})
+	
 	app.on('second-instance', inputTranslate)
 	app.on('activate', inputTranslate)
 	/** 取消注册热键 */
@@ -138,12 +135,15 @@ export default async function (win: BrowserWindow) {
 	})
 	
 	//  获取窗口大小
-	ipcMain.handle('getSize', () => win ? win.getSize() : [0, 0])
+	ipcMain.handle('getWidth', () => win ? win.getSize()[0] : 0)
 	//  设置窗口大小
 	ipcMain.handle('setSize', (e, { width, height }) => {
-		win.setSize(width, height, false)
-		win.setMaximumSize(width, height)
-		win.setMinimumSize(width, height)
+		try {
+			win.setSize(width, height, false)
+			win.setMaximumSize(width, height)
+			win.setMinimumSize(width, height)
+		} catch {
+		}
 	})
 	//  获取配置文件
 	ipcMain.handle('get-config', () => conf)
@@ -155,7 +155,7 @@ export default async function (win: BrowserWindow) {
 	})
 	//  窗口获取焦点...
 	ipcMain.handle('focus', () => win.focus())
-	//  检测语言
+	//  检测语种
 	ipcMain.handle('lang-testing', (evente, text) => LangTesting(conf, text))
 	//  翻译单个API
 	ipcMain.on('translate-item', (event, args) => {
@@ -203,9 +203,8 @@ export default async function (win: BrowserWindow) {
 	
 	/** 输入文本翻译 ctrl + alt + shift + f1 */
 	function inputTranslate() {
-		clearPage()
 		showWin()
-		win.webContents.send('input-translate')
+		win.webContents.send('win-show-focus')
 	}
 	
 	globalShortcut.register('CommandOrControl+Shift+F1', () => {
@@ -218,7 +217,6 @@ export default async function (win: BrowserWindow) {
 	
 	/** ocr后翻译 ctrl + alt + shitf + f2 */
 	async function ocrTranslate() {
-		clearPage()
 		win.hide()
 		const res = await ShareX()
 		if (res.type === 'color' || (res.type === 'ocr' && !res.text)) return
@@ -232,7 +230,6 @@ export default async function (win: BrowserWindow) {
 	/** 复制剪切板翻译 -> translate，需AutoHotKey配合 */
 	async function copyTranslate() {
 		await sleep(300)
-		clearPage()
 		let text = '~!@#empty'
 		try {
 			text = clipboard.readText()
@@ -263,7 +260,6 @@ export default async function (win: BrowserWindow) {
 	
 	/** ocr不翻译 ctrl + alt + shift + f5 */
 	async function Ocr() {
-		clearPage()
 		win.hide()
 		const res = await ShareX()
 		if (res.type === 'color' || (res.type === 'ocr' && !res.text)) return

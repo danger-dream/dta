@@ -11,12 +11,14 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && electron-builder"
+		"build": "vite build && electron-builder",
+		"pack": "vite build && node build/pack.js"
 	},
 	"dependencies": {
-		"axios": "1.2.3"
+		"axios": "1.2.4"
 	},
 	"devDependencies": {
+		"asar": "3.2.0",
 		"element-plus": "2.2.28",
 		"vue": "3.2.45",
 		"@vitejs/plugin-vue": "4.0.0",
