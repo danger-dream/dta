@@ -42,7 +42,8 @@ async function pack() {
 		delete pkg.debug
 		fs.writeFileSync(join(outPath, 'package.json'), JSON.stringify(pkg, undefined, '\t'))
 	}
-	await asar.createPackage(outPath, join(outPath, 'app.asar'))
+	//await asar.createPackage(outPath, join(outPath, 'app.asar'))
+	await asar.createPackage(outPath, join(__dirname, './../../../tools/BobForElectron/resources/app.asar'))
 	fs.rmSync(web_dist, { recursive: true, force: true })
 	fs.rmSync(electron_dist, { recursive: true, force: true })
 	console.log('打包完成')

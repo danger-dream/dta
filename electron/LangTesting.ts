@@ -1,5 +1,5 @@
 import { IConfig } from '../types'
-import { Language } from '../global'
+import { Language, localUrl } from '../global'
 import { LanguageDetect } from './tencentcloud'
 import axios from 'axios'
 
@@ -52,7 +52,7 @@ async function google(config: IConfig, str: string): Promise<string> {
 		const conf = config.translate.find(x => x.name === 'google')
 		if (!conf || !conf.url || !conf.projectId || !conf.apiKey)
 			return ''
-		const res = await axios.post(conf.url + '/detect', { projectId: conf.projectId, key: conf.apiKey, text: str })
+		const res = await axios.post(localUrl(config, conf) + '/detect', { projectId: conf.projectId, key: conf.apiKey, text: str })
 		if (res.status === 200 && res.data.success) {
 			if (res.data.result.language.startsWith('zh')) return Language.中文
 			for (const item of config.languages) {

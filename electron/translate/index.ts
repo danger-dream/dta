@@ -10,11 +10,13 @@ import caiyun from './caiyun'
 import google from './google'
 import youdao from './youdao'
 import metaAI from './metaAI'
+import { localUrl } from '../../global'
 
 const map = { baidu, fsou, openl, tencent, metaAI, wechat, caiyun, google, youdao }
 const store = new Store('history', 'bob-for-electron-history')
 const historys = store.get('list', []) as { id: string, text: string, from: string, to: string, result: any }[]
 const historyMap = store.get('map', {}) as Record<string, number>
+
 export default async function (config: IConfig, item: OcrTranslateConfig, text: string, from: string, to: string): Promise<ITranslateResultItem | ITranslateResultItem[]> {
 	if (!item.enable) {
 		return { name: item.name, text: '接口未启用', status: false } as any
@@ -52,6 +54,8 @@ export default async function (config: IConfig, item: OcrTranslateConfig, text: 
 		if (!lang_to) {
 			lang_to = config.languages.find(x => x.name === to).default
 		}
+		item = JSON.parse(JSON.stringify(item))
+		item.url = localUrl(config, item)
 		const res = await action(item, text, lang_from, lang_to)
 		if (!res) {
 			return end_catch({ name: item.name, text: '无翻译结果', status: false })

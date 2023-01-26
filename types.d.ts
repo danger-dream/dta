@@ -27,7 +27,7 @@ export declare interface OcrTranslateConfig extends Record<string, any> {
 	label: string,
 	ui: UIConfig[]
 	url: string
-	
+	local_url?: string
 	zh2en_enable?: boolean
 }
 
@@ -42,6 +42,7 @@ export declare interface IConfig {
 	translate: OcrTranslateConfig[]
 	languages: Languages[]
 	timeout: number
+	local_ip?: string
 }
 
 
@@ -52,7 +53,6 @@ export declare interface ITranslateResultItem {
 	text: string
 	label?: string
 	status: boolean
-	
 	isWord?: boolean
 	work_ext: {
 		/** 音标 */
