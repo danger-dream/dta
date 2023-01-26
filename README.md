@@ -257,9 +257,10 @@ export default {
 * 项目中的build/ShareX.exe是我编译的，不放心的可以用我精简过的ShareX编译后替换掉就行
 * 设计了配置界面的dom生成规则，要和家人出去几天就懒得继续写了
 * 只使用了常用的包，理论都能自己打包出来
-* 要搭配[AutoHotKey 2.0](https://autohotkey.com).食用效果最佳，划词用的Snip.Do PRO，加了个快捷键文本扩展(ctrl + alt + shift + f12)
-* 理论上electron用ffi也能替代掉autohotkey，但这个打包对不熟悉的人来说有点痛苦。性能也是问题，就算了吧
-* 其实用tauri或者wails来做性能、打包后的体积会更好，也能解决本地化调用的问题，一个程序完成屏幕取词、键盘映射、截图取色、翻译。以后有时间在说吧
+* 要搭配[AutoHotKey 2.0](https://autohotkey.com).食用效果最佳，划词用的Snip.Do PRO，加了个快捷键文本扩展(ctrl + alt + shift + f12
+* AutoHotKe有C#替代品, [keysharp](https://bitbucket.org/mfeemster/keysharp) . 但没法触发alt + LButton -> ctrl + LButton，代码中大片注释，看着心累，懒得集成了
+* 理论上electron用ffi也能替代掉autohotkey，但这个打包对不熟悉的人来说有点痛苦，性能也是问题，就算了吧
+* 其实用tauri或者wails来做性能、打包后的体积会更好，能解决本地化调用的问题，一个程序完成屏幕取词、键盘映射、截图取色、翻译。但轮子太少，以后有时间在说吧
 
 ## Autohotkey 2.0脚本
 
