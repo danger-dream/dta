@@ -246,10 +246,10 @@ export default {
 * 因工作原因切换至windows平台，少了[PopClip](https://pilotmoon.com/popclip/) + [Bob](https://bobtranslate.com/).怎么都觉得不对劲
 * 网上能找到的类似的工具我都试了一遍，没一个能让我满意的，趁过年有点时间自己仿一个
 * 一开始c#做的版本叫Bob for Windows，界面太丑了，我自己都看不下去，不放出来献丑了
-* 换到Electron又没法解决截图、取色问题(原本是调的qq CameraDll.dll)，github上找到了[ShareX](https://github.com/ShareX/ShareX).能满足我的需求，但是太重了，精简一番后也开源了[ShareX](https://github.com/hlxxzt/ShareX).截图界面"h"键取色
+* 换到Electron又没法解决截图、取色问题(原本是调的qq CameraDll.dll)，github上找到了[ShareX](https://github.com/ShareX/ShareX).能满足我的需求，但是太重了，精简一番后也开源了[ShareX](https://github.com/exaggerated-dream/ShareX).截图界面"h"键取色
 * 飞桨OCR部署完成后的地址是host:port/predict/ocr_system.我自己代理了一层到cdn，要用的话记得改成你自己的url
 * openl我默认禁用了，免费额度太少，应急用吧，反正很多是重合的，不重合的效果也不是很理想
-* google api调用是自己撸了个[express api google-cloud-api-server](https://github.com/hlxxzt/google-cloud-api-serve).部署在hk服务器上用的，也有其他方案，比如：Cloudflare Workers、走镜像站、改hosts
+* google api调用是自己撸了个[express api google-cloud-api-server](https://github.com/exaggerated-dream/google-cloud-api-serve).部署在hk服务器上用的，也有其他方案，比如：Cloudflare Workers、走镜像站、改hosts
 * google的免费额度比较少，单独加了层仅中转英时才使用的逻辑
 * fairseq需要自己部署，docker部署很简单，但对配置要求有些高，不一定要GPU，8U 8G的话速度还行，我没用docker，但接口我适配了docker版的，对了，记得改url
 * fairseq docker部署完成后语种支持不全，需要改容器中的/app/config.py translation_langs，修改为translation_langs = ["eng_Latn", "fra_Latn", "zho_Hans", "kor_Hang", "jpn_Jpan", "deu_Latn", "rus_Cyrl"]
