@@ -1,4 +1,4 @@
-export declare interface Languages {
+export declare interface Languages extends Record<string, any> {
 	name: string
 	default: string
 	fsou?: string
@@ -45,15 +45,15 @@ export declare interface IConfig {
 	local_ip?: string
 }
 
-
-export declare type ITranslateResult = { id: string, result: ITranslateResultItem | ITranslateResultItem[] }
-
-export declare interface ITranslateResultItem {
+export declare interface UITranslate {
 	name: string
 	text: string
 	label?: string
 	status: boolean
+	expand: boolean
+	loading: boolean
 	isWord?: boolean
+	timestamp: number
 	work_ext: {
 		/** 音标 */
 		phonetic: string
@@ -82,9 +82,4 @@ export declare interface ITranslateResultItem {
 		/** 网络释义 */
 		web: { name: string, list: string[] }[]
 	}
-}
-
-export declare interface UITranslate extends ITranslateResultItem {
-	expand: boolean
-	loading: boolean
 }

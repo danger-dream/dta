@@ -1,6 +1,7 @@
-import { OcrTranslateConfig } from '../../types'
+import { OcrTranslateConfig } from '../../../types'
 import axios from 'axios'
-import qs from 'node:querystring'
+
+const qs = window.require('querystring')
 
 export default async function (conf: OcrTranslateConfig, base64: string): Promise<string> {
 	
@@ -24,5 +25,5 @@ export default async function (conf: OcrTranslateConfig, base64: string): Promis
 			return qs.stringify(data)
 		}]
 	})
-	return res.data.words_result.map(x => x.words).join('\n')
+	return res.data.words_result.map((x: any) => x.words).join('\n')
 }

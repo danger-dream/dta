@@ -1,4 +1,4 @@
-import { OcrTranslateConfig } from '../../types'
+import { OcrTranslateConfig } from '../../../types'
 import { TextTranslate } from '../tencentcloud'
 
 export default async function (conf: OcrTranslateConfig, text: string, from: string, to: string): Promise<string> {

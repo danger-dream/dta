@@ -1,13 +1,14 @@
-import { OcrTranslateConfig } from '../../types'
+import { OcrTranslateConfig } from '../../../types'
 import axios from 'axios'
-import qs from 'querystring'
-import crypto from 'node:crypto'
+
+const qs = window.require('querystring')
+const crypto = window.require('crypto')
 
 function S4(): string {
 	return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
 }
 
-function truncate(q) {
+function truncate(q: string): string {
 	const len = q.length
 	if (len <= 20) return q
 	return q.substring(0, 10) + len + q.substring(len - 10, len)
@@ -47,13 +48,13 @@ export default async function (conf: OcrTranslateConfig, text: string, from: str
 			}
 		}
 		if (basic.wfs) {
-			obj.work_ext.wfs = basic.wfs.map(x => {
+			obj.work_ext.wfs = basic.wfs.map((x: { wf: { name: string, value: string } }) => {
 				return { name: x.wf.name, value: x.wf.value }
 			})
 		}
 	}
 	if (data.web) {
-		obj.work_ext.web = data.web.map(x => {
+		obj.work_ext.web = data.web.map((x: { key: string, value: string }) => {
 			return { name: x.key, list: x.value }
 		})
 	}

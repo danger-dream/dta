@@ -1,8 +1,6 @@
-import { app } from 'electron'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import crypto from 'node:crypto'
-
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = window.require('fs')
+const crypto = window.require('crypto')
+const { join } = window.require('path')
 const defaultKey = 'FV$jyu*D!rWpxZZ2$g%cfDx6%^Ng@2xh'
 
 function encrypt(text: string, key: string): Buffer {
@@ -22,7 +20,7 @@ export default class Store {
 	private readonly map: Record<string, any> = {}
 	
 	constructor(private filename: string, private pwd: string) {
-		this.path = join(app.getPath('userData'), 'conf')
+		this.path = join(window.process.env.USER_DATA_PATH, 'conf')
 		if (!existsSync(this.path)) {
 			mkdirSync(this.path)
 		}

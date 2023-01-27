@@ -49,7 +49,7 @@ docker run --name trans -d -p 8080:8080 rosasalberto/translation-service
 ## 配置文件
 
 * ### 自己申请接口后修改这部分，涉及到各种密钥，我就不提交这个文件了
-* ### 路径在electron/lib/config.ts
+* ### 路径在src/config.ts
 * ### 不加没法运行!!!!
 
 ```typescript

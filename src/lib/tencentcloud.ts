@@ -1,15 +1,17 @@
+//import { ipcRenderer } from 'electron'
 import axios from 'axios'
-import crypto from 'node:crypto'
 
-function getHash(message) {
+const crypto = window.require('crypto')
+
+function getHash(message: string) {
 	return crypto.createHash('sha256').update(message).digest('hex')
 }
 
-function sha256(message, secret = '', encoding = '') {
+function sha256(message: string, secret = '', encoding = '') {
 	return crypto.createHmac('sha256', secret).update(message).digest(encoding as any)
 }
 
-function getDate(timestamp) {
+function getDate(timestamp: number): string {
 	const date = new Date(timestamp * 1000)
 	return `${ date.getUTCFullYear() }-${ ('0' + (date.getUTCMonth() + 1)).slice(-2) }-${ ('0' + date.getUTCDate()).slice(-2) }`
 }
@@ -27,7 +29,7 @@ async function RequestTencentCloudApi(action: string, req: Record<string, any>, 
 	const res = await axios.post('https://tmt.tencentcloudapi.com/', req, {
 		timeout: 60 * 1000,
 		headers: {
-			Host: 'tmt.tencentcloudapi.com',
+			//Host: 'tmt.tencentcloudapi.com',
 			'Content-Type': 'application/json',
 			'X-TC-Action': 'TextTranslate',
 			'X-TC-Region': config.region,

@@ -1,5 +1,5 @@
-import Store from '../store'
-import { OcrTranslateConfig } from '../../types'
+import Store from './store'
+import { OcrTranslateConfig } from '../../../types'
 import axios from 'axios'
 
 const store = new Store('wx', 'bob-for-electron')

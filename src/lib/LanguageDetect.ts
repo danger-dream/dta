@@ -1,10 +1,11 @@
-import { IConfig } from '../types'
-import { Language, localUrl } from '../global'
+import { IConfig } from '../../types'
+import { Language, localUrl } from '../../global'
 import { LanguageDetect } from './tencentcloud'
+
 import axios from 'axios'
 
 
-function lang_testing(str) {
+function lang_testing(str: string) {
 	const s = str.replace(/\s+/g, '')
 	if (s.length < 1) return Language.英语
 	const list = [
@@ -29,10 +30,10 @@ function lang_testing(str) {
 	return news.sort((a, b) => b.num - a.num)[0].type
 }
 
-async function tencent(config: IConfig, str): Promise<string> {
+async function tencent(config: IConfig, str: string): Promise<string> {
 	try {
 		const conf = config.translate.find(x => x.name === 'tencent')
-		if (!conf.secretId || !conf.secretKey) {
+		if (!conf || !conf.secretId || !conf.secretKey) {
 			return ''
 		}
 		const text = str.split('\n').filter(x => !!x).join(' ').substring(0, 30)
@@ -43,8 +44,8 @@ async function tencent(config: IConfig, str): Promise<string> {
 			}
 		}
 	} catch {
-		return ''
 	}
+	return ''
 }
 
 async function google(config: IConfig, str: string): Promise<string> {

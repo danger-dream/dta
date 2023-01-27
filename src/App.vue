@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IConfig, ITranslateResult, UITranslate } from '../types'
+import type { UITranslate } from '../types'
 import { ipcRenderer, clipboard } from 'electron'
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { ElScrollbar, ElInput } from 'element-plus'
@@ -7,85 +7,194 @@ import 'element-plus/theme-chalk/el-input.css'
 import 'element-plus/theme-chalk/el-scrollbar.css'
 import { Language } from '../global'
 import { UUID, isEmpty } from './utils'
+import default_config from './config'
+import LibOCR from './lib/ocr'
+import Translate from './lib/translate'
+import LanguageDetect from './lib/LanguageDetect'
+import { OcrTranslateConfig } from '../types'
 
 const shadow = ref<HTMLElement>(null as any)
-let defaultWidth = 0
 let trans_task_id = ''
 let trans_timeout: any = undefined
 let lang_menu_close_timeout: any = undefined
 const input = ref<any>(null)
 const state = reactive({
-	config: {} as IConfig,
+	config: default_config,
 	reverse: '',
 	auto_lang_test: '',
 	from: Language.自动检测,
 	to: Language.自动检测,
-	loading_lang_testing: false,
-	loading: false,
+	loading_text: '',
 	text: '',
 	results: [] as UITranslate[]
 })
 
-//  启动时获取配置文件
-ipcRenderer.invoke('get-config').then((res) => Object.assign(state.config, res))
+function onResize(cb?: Function, show?: boolean) {
+	nextTick(async () => {
+		const height = shadow.value?.clientHeight + 60
+		show !== false && await ipcRenderer.invoke('show')
+		await ipcRenderer.invoke('setHeight', height)
+		cb && cb()
+	})
+}
 
-//  窗口隐藏时调整清空界面
-ipcRenderer.on('clear', () => {
+onMounted(() => {
+	onResize(async () => {
+		await ipcRenderer.invoke('focus')
+		input.value?.ref?.focus()
+	})
+})
+
+window.onblur = function () {
+	if (state.config.pinup) return
+	state.auto_lang_test = ''
+	state.loading_text = ''
 	trans_task_id = ''
-	state.config.pinup = false
 	state.text = ''
 	state.results = []
+	clearTimeout(trans_timeout)
+	trans_timeout = undefined
+	onResize(() => ipcRenderer.send('hide'), false)
+}
+
+ipcRenderer.on('show', (event, args) => {
 	onResize()
-})
-
-//  ocr识别并翻译
-ipcRenderer.on('ocr-result', (event, args) => {
-	state.text = args.text
-	args.status && translate()
-})
-
-//  文本翻译
-ipcRenderer.on('text-translate', (event, args) => {
-	if (state.loading) return
-	if (args === '~!@#empty') {
-		state.text = '未获取到可用的数据'
-	} else {
-		state.text = args
-		translate()
+	if (!args) {
+		input.value?.ref?.focus()
+		return
 	}
+	const { base64, status, trans, text } = args
+	if (text) {
+		if (text === '~!@#empty') {
+			state.text = '未获取到可用的数据'
+			return
+		}
+		state.text = text
+		trans && handleTrans()
+		return
+	}
+	if (!status) {
+		state.text = base64
+		return
+	}
+	handleOcr(base64, trans)
 })
 
-//  图片识别结果
-ipcRenderer.on('text-result', (event, { status, text }) => {
-	if (state.loading) return
-	state.text = status ? text : 'OCR识别失败:' + text
-})
+async function handleOcr(base64: string, trans: boolean) {
+	try {
+		state.loading_text = 'OCR识别中...'
+		const text = await LibOCR(state.config, base64)
+		state.loading_text = ''
+		state.text = text || ''
+		if (text && trans) {
+			handleTrans().then().catch()
+		}
+	} catch (e: any) {
+		state.loading_text = ''
+		state.text = 'OCR识别失败: ' + e.message
+	}
+}
 
-//  单次翻译结果
-ipcRenderer.on('translate-result', (event, args: ITranslateResult) => {
-	if (args.id !== trans_task_id) return
-	let list = args.result
-	if (!Array.isArray(list)) {
-		list = [list]
+async function transItem(conf: OcrTranslateConfig, from: Language, to: Language, id: string, item: UITranslate) {
+	const st = Date.now()
+	try {
+		const res = await Translate(state.config, conf, state.text, from, to)
+		if (id === trans_task_id) {
+			if (typeof res === 'string') {
+				item.text = res
+			} else {
+				Object.assign(item, res)
+			}
+			item.status = true
+			item.loading = false
+		}
+	} catch (e: any) {
+		if (id === trans_task_id) {
+			item.status = false
+			item.text = '翻译接口调用错误: \n' + e.message + '\n' + e.stack
+		}
 	}
-	for (const item of list) {
-		const res = state.results.find(x => x.name === item.name)
-		if (!res) continue
-		Object.assign(res, item)
-		res.loading = false
-		res.expand = true
-	}
+	item.timestamp = Date.now() - st
+	item.loading = false
+	item.expand = true
+	state.results.push(item)
+	if (id !== trans_task_id) return
 	if (!state.results.find(x => x.loading)) {
-		state.loading = false
+		state.loading_text = ''
 		clearTimeout(trans_timeout)
 		trans_timeout = undefined
-		ipcRenderer.invoke('focus')
+		ipcRenderer.invoke('focus').catch()
 	}
-	nextTick().then(() => onResize())
-})
+	onResize()
+	
+}
 
-// 文本框获取焦点
-ipcRenderer.on('win-show-focus', () => input.value?.ref?.focus())
+async function handleTrans() {
+	if (isEmpty(state.text)) return
+	//  去除空行和多余\r、\t
+	state.text = state.text.split('\n').map(x => {
+		let res = x
+		if (res) {
+			res = res.replaceAll('\t', ' ').replaceAll('\r', '')
+		}
+		return res
+	}).filter(x => !!x).join('\n')
+	const tlist = state.config.translate.filter(x => x.enable)
+	if (tlist.length < 1) return
+	//  语言检测
+	state.loading_text = '正在识别语种'
+	let from = state.from
+	state.auto_lang_test = ''
+	if (state.from === Language.自动检测) {
+		from = state.auto_lang_test = await LanguageDetect(state.config, state.text) as Language
+	}
+	let to = Language.英语
+	if (state.to === Language.自动检测) {
+		if (from !== Language.中文) {
+			to = Language.中文
+		}
+	}
+	state.loading_text = '正在翻译...'
+	//  每次调用一个翻译服务，不用等所有服务都出结束才看的到结果
+	state.results = []
+	trans_task_id = UUID()
+	for (const item of tlist) {
+		if (item.zh2en_enable) {
+			//  如果不是中转英，跳过
+			if (from !== Language.中文 || to !== Language.英语) {
+				continue
+			}
+		}
+		const obj = {
+			name: item.name,
+			label: item.label,
+			text: '',
+			expand: false,
+			loading: true,
+			status: false,
+			isWord: false
+		} as UITranslate
+		transItem(item, from, to, trans_task_id, obj).catch()
+	}
+	//  超时
+	trans_timeout = setTimeout(() => {
+		for (const item of state.results) {
+			if (item.loading) {
+				item.status = false
+				item.text = '调用接口超时!'
+				item.loading = false
+				item.expand = true
+			}
+		}
+		state.loading_text = ''
+		trans_task_id = ''
+		ipcRenderer.invoke('focus')
+		onResize()
+	}, 1000 * (state.config.timeout || 15))
+	//  调整窗口大小
+	onResize()
+}
+
 
 //  选择语言
 ipcRenderer.on('select-lang', (event, args: { target: 'to' | 'from', lang: Language }) => {
@@ -99,7 +208,7 @@ ipcRenderer.on('select-lang', (event, args: { target: 'to' | 'from', lang: Langu
 			state.from = state.config.languages.find(x => x.name !== state.to)?.name as any || Language.英语
 		}
 	}
-	!isEmpty(state.text) && translate()
+	!isEmpty(state.text) && handleTrans()
 })
 //  语言选择菜单关闭
 ipcRenderer.on('lang-menu-close', () => {
@@ -107,96 +216,20 @@ ipcRenderer.on('lang-menu-close', () => {
 	lang_menu_close_timeout = setTimeout(() => state.reverse = '', 150)
 })
 
-onMounted(() => nextTick().then(async () => {
-	defaultWidth = await ipcRenderer.invoke('getWidth')
-	onResize()
-	ipcRenderer.invoke('focus').then(() => input.value?.ref?.focus())
-}))
-
-function onResize() {
-	const height = shadow.value?.clientHeight + 60
-	ipcRenderer.invoke('setSize', { width: defaultWidth, height })
-	setTimeout(() => ipcRenderer.invoke('setSize', { width: defaultWidth, height }), 10)
-}
-
-function onPin() {
-	state.config.pinup = !state.config.pinup
-	ipcRenderer.send('set-config', JSON.parse(JSON.stringify(state.config)))
-}
-
-function onOcrClipboard() {
-	state.config.ocr_clipboard = !state.config.ocr_clipboard
-	ipcRenderer.send('set-config', JSON.parse(JSON.stringify(state.config)))
-}
-
 function onInput() {
 	state.auto_lang_test = ''
-	nextTick().then(() => onResize())
-}
-
-async function translate() {
-	if (isEmpty(state.text)) return
-	state.text = state.text.trim()
-	const tlist = state.config.translate.filter(x => x.enable)
-	if (tlist.length < 1) return
-	//  语言检测
-	state.loading = true
-	let from = state.from
-	state.auto_lang_test = ''
-	if (state.from === Language.自动检测) {
-		state.loading_lang_testing = true
-		from = state.auto_lang_test = await ipcRenderer.invoke('lang-testing', state.text)
-		state.loading_lang_testing = false
-	}
-	let to = Language.英语
-	if (state.to === Language.自动检测) {
-		if (from !== Language.中文) {
-			to = Language.中文
-		}
-	}
-	//  每次调用一个翻译服务，不用等所有服务都出结束才看的到结果
-	state.results = []
-	trans_task_id = UUID()
-	for (const item of tlist) {
-		if (item.zh2en_enable) {
-			//  如果不是中转英，跳过
-			if (from !== Language.中文 || to !== Language.英语) {
-				continue
-			}
-		}
-		ipcRenderer.send('translate-item', { name: item.name, text: state.text, from, to, id: trans_task_id })
-		state.results.push({
-			name: item.name, label: item.label, text: '',
-			expand: false, loading: true, status: false, isWord: false
-		} as any)
-	}
-	//  超时
-	trans_timeout = setTimeout(() => {
-		for (const item of state.results) {
-			if (item.loading) {
-				item.status = false
-				item.text = '调用接口超时!'
-				item.loading = false
-				item.expand = true
-			}
-		}
-		state.loading = false
-		ipcRenderer.invoke('focus')
-		nextTick().then(() => onResize())
-	}, 1000 * (state.config.timeout || 15))
-	//  调整窗口大小
-	nextTick().then(() => onResize())
+	onResize()
 }
 
 function onFY(e: KeyboardEvent) {
 	if (e.ctrlKey || e.altKey || e.metaKey) {
 		state.text += '\n'
 		input.value?.ref?.focus()
-		nextTick().then(() => onResize())
+		onResize()
 	} else {
 		e.stopPropagation()
 		e.preventDefault()
-		translate()
+		handleTrans()
 	}
 }
 
@@ -209,7 +242,8 @@ function onSelectLang(e: MouseEvent, target: 'from' | 'to') {
 	const el = e.target as HTMLElement
 	ipcRenderer.send('show-lang-menu', {
 		from: state.from, to: state.to, target: state.reverse,
-		x: el.offsetLeft, y: el.offsetTop + 20 + el.offsetHeight
+		x: el.offsetLeft + 15, y: el.offsetTop + 55 + el.offsetHeight,
+		languages: JSON.parse(JSON.stringify(state.config.languages))
 	})
 }
 
@@ -217,12 +251,12 @@ function onExchange() {
 	let s = state.from
 	state.from = state.to
 	state.to = s
-	translate()
+	handleTrans()
 }
 
 function onExpand(item: any) {
 	item.expand = !item.expand
-	nextTick().then(() => onResize())
+	onResize()
 }
 
 function getPath(svg: string): string {
@@ -240,21 +274,23 @@ async function playAudio(url: string) {
 		<div class="shadow" ref="shadow">
 			<div class="tools">
 				<div style="display: flex; align-items: center;">
-					<div class="btn no-drag" :class="state.config.pinup ? 'active' : ''" title="钉住窗口，不会因为失去焦点而隐藏窗口" @click="onPin">
+					<div class="btn no-drag" :class="state.config.pinup ? 'active' : ''" title="钉住窗口，不会因为失去焦点而隐藏窗口"
+						@click="state.config.pinup = !state.config.pinup">
 						<Iconify icon="pinup" style="transform: rotate(-45deg);" />
 					</div>
 				</div>
 				<div style="display: flex; align-items: center;">
-					<div class="btn no-drag" title="识图并翻译 Ctrl + Shift + F2" @click="() => ipcRenderer.send('ocr-translate')">
+					<div class="btn no-drag" title="识图并翻译 Ctrl + Shift + F2" @click="() => ipcRenderer.send('screenshot', { ocr: true, trans: true })">
 						<Iconify icon="trans" />
 					</div>
-					<div class="btn no-drag" title="图片识别 Ctrl + Shift + F5" @click="() => ipcRenderer.send('ocr-not-translate')">
+					<div class="btn no-drag" title="图片识别 Ctrl + Shift + F5" @click="() => ipcRenderer.send('screenshot', { ocr: true, trans: false })">
 						<Iconify icon="ocr" />
 					</div>
-					<div class="btn no-drag" title="截图/取色 Ctrl + Shift + F4" @click="ipcRenderer.send('screenshot')">
+					<div class="btn no-drag" title="截图/取色 Ctrl + Shift + F4" @click="() => ipcRenderer.send('screenshot', { ocr: false, trans: false })">
 						<Iconify icon="screenshot" />
 					</div>
-					<div class="btn no-drag" :class="state.config.ocr_clipboard ? 'active' : ''" title="识图后复制内容到剪切板" @click="onOcrClipboard">
+					<div class="btn no-drag" :class="state.config.ocr_clipboard ? 'active' : ''" title="识图后复制内容到剪切板"
+						@click="state.config.ocr_clipboard = !state.config.ocr_clipboard">
 						<Iconify icon="clipboard" />
 					</div>
 				</div>
@@ -263,15 +299,17 @@ async function playAudio(url: string) {
 				<div class="input-box">
 					<el-input v-model="state.text" :autosize="{minRows: 3, maxRows: 10}" type="textarea" :maxlength="3000" show-word-limit
 						placeholder="待翻译的内容，Enter 翻译，Alt | Ctrl + Enter 换行" resize="none"
-						v-loading="state.loading_lang_testing || state.loading" :element-loading-text="state.loading_lang_testing ? '正在识别语种' : '正在翻译...'"
+						v-loading="!!state.loading_text" :element-loading-text="state.loading_text"
 						@input="onInput" @keydown.enter="onFY" ref="input" />
 					<div class="bottom-ext">
-						<div class="btn no-drag" @click="() => clipboard.writeText(state.text)" title="复制">
-							<Iconify icon="copy" style="transform: rotate(-180deg);font-size: 16px;" />
-						</div>
-						<div v-if="state.auto_lang_test" class="language">
-							识别为
-							<mark>{{ state.auto_lang_test }}</mark>
+						<div style="display: flex; align-items: center;">
+							<div class="btn no-drag" @click="() => clipboard.writeText(state.text)" title="复制">
+								<Iconify icon="copy" style="transform: rotate(-180deg);font-size: 16px;" />
+							</div>
+							<div v-if="state.auto_lang_test" class="language">
+								识别为
+								<mark>{{ state.auto_lang_test }}</mark>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -293,6 +331,9 @@ async function playAudio(url: string) {
 						<div class="left">
 							<img :src="getPath(item.name)" />
 							{{ item.label }}
+							<span style="font-size: 13px; color: #8E8E8E;margin-left: 5px;">
+								({{ item.timestamp }}ms)
+							</span>
 						</div>
 						<Iconify icon="fxs" :class="item.expand ? 'is-reverse' : ''" style="margin-right: 15px;" />
 					</div>
@@ -339,6 +380,9 @@ async function playAudio(url: string) {
 							<div class="btn no-drag" @click="() => clipboard.writeText(item.text)" title="复制">
 								<Iconify icon="copy" style="transform: rotate(-180deg);font-size: 16px;" />
 							</div>
+							<span v-if="item.status" style="color: var(--el-color-info);font-size: 12px;line-height: 14px;margin-right: 12px;">
+								{{ item.text.length }}
+							</span>
 						</div>
 					</template>
 				</div>

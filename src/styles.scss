@@ -81,7 +81,10 @@ input[type="submit"], input[type="reset"], input[type="button"], input[type="tex
 		}
 	}
 	
-	.bottom-ext { display: flex; align-items: center; margin: 5px 5px 5px 6px; }
+	.bottom-ext {
+		display: flex; align-items: center; margin: 5px 5px 5px 6px;
+		justify-content: space-between;
+	}
 	
 	.language { color: #ADADAD;font-size: 12px;margin-left: 10px;padding: 3px 10px;border-radius: 20px;background-color: #EAEAEA; }
 	

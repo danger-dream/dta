@@ -1,7 +1,8 @@
-import { OcrTranslateConfig } from '../../types'
+import { OcrTranslateConfig } from '../../../types'
 import axios from 'axios'
-import qs from 'querystring'
-import crypto from 'crypto'
+
+const qs = window.require('querystring')
+const crypto = window.require('crypto')
 
 export default async function (conf: OcrTranslateConfig, text: string, from: string, to: string): Promise<string> {
 	const salt = new Date().getTime()
@@ -11,7 +12,7 @@ export default async function (conf: OcrTranslateConfig, text: string, from: str
 	})
 	const res = await axios.get(url)
 	if (res.status === 200 && res.data.trans_result?.length > 0) {
-		return res.data.trans_result.map(x => x.dst).join('\n')
+		return res.data.trans_result.map((x: any) => x.dst).join('\n')
 	} else {
 		return ''
 	}
