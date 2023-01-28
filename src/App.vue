@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UITranslate } from '../types'
 import { ipcRenderer, clipboard } from 'electron'
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { ElScrollbar, ElInput } from 'element-plus'
 import 'element-plus/theme-chalk/el-input.css'
 import 'element-plus/theme-chalk/el-scrollbar.css'
@@ -27,6 +27,11 @@ const state = reactive({
 	loading_text: '',
 	text: '',
 	results: [] as UITranslate[]
+})
+
+watch(() => state.text, () => {
+	state.auto_lang_test = ''
+	onResize()
 })
 
 function onResize(cb?: Function, show?: boolean) {
@@ -86,6 +91,7 @@ async function handleOcr(base64: string, trans: boolean) {
 		const text = await LibOCR(state.config, base64)
 		state.loading_text = ''
 		state.text = text || ''
+		onResize()
 		if (text && trans) {
 			handleTrans().then().catch()
 		}
@@ -216,17 +222,8 @@ ipcRenderer.on('lang-menu-close', () => {
 	lang_menu_close_timeout = setTimeout(() => state.reverse = '', 150)
 })
 
-function onInput() {
-	state.auto_lang_test = ''
-	onResize()
-}
-
-function onFY(e: KeyboardEvent) {
+function onTrans(e: KeyboardEvent) {
 	if (e.ctrlKey || e.altKey || e.metaKey) {
-		state.text += '\n'
-		input.value?.ref?.focus()
-		onResize()
-	} else {
 		e.stopPropagation()
 		e.preventDefault()
 		handleTrans()
@@ -298,9 +295,8 @@ async function playAudio(url: string) {
 			<el-scrollbar class="no-drag" max-height="800px">
 				<div class="input-box">
 					<el-input v-model="state.text" :autosize="{minRows: 3, maxRows: 10}" type="textarea" :maxlength="3000" show-word-limit
-						placeholder="待翻译的内容，Enter 翻译，Alt | Ctrl + Enter 换行" resize="none"
-						v-loading="!!state.loading_text" :element-loading-text="state.loading_text"
-						@input="onInput" @keydown.enter="onFY" ref="input" />
+						placeholder="待翻译的内容，Alt | Ctrl + Enter 翻译" resize="none"
+						v-loading="!!state.loading_text" :element-loading-text="state.loading_text" @keydown.enter="onTrans" ref="input" />
 					<div class="bottom-ext">
 						<div style="display: flex; align-items: center;">
 							<div class="btn no-drag" @click="() => clipboard.writeText(state.text)" title="复制">

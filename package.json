@@ -14,10 +14,9 @@
 		"build": "vite build && electron-builder",
 		"pack": "vite build && node build/pack.js"
 	},
-	"dependencies": {
-		"axios": "1.2.4"
-	},
+	"dependencies": { },
 	"devDependencies": {
+		"axios": "1.2.4",
 		"asar": "3.2.0",
 		"element-plus": "2.2.28",
 		"vue": "3.2.45",

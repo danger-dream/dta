@@ -8,7 +8,7 @@ function copyDependencies(pkg_path, out_path, base_node_modules) {
 	let pkg
 	try {
 		pkg = JSON.parse(fs.readFileSync(path, 'utf-8'))
-		if (!pkg.dependencies) {
+		if (!pkg['dependencies']) {
 			return
 		}
 	} catch {
