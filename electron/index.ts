@@ -81,7 +81,9 @@ app.whenReady().then(() => {
 	})
 	const win_width = win.getSize()[0]
 	ipcMain.handle('setHeight', (e, height) => {
+		win.resizable = true
 		try {
+			
 			win.focus()
 			win.setBounds({
 				x: primaryDisplay.bounds.width - 450 - 40, y: 40, width: 450, height: height
@@ -94,6 +96,7 @@ app.whenReady().then(() => {
 			win.setMinimumSize(win_width, height)
 		} catch {
 		}
+		win.resizable = false
 	})
 	ipcMain.handle('show', () => win.show())
 	ipcMain.handle('focus', () => win.focus())
