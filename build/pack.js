@@ -5,21 +5,30 @@ const asar = require('asar')
 function copyDependencies(pkg_path, out_path, base_node_modules) {
 	const path = join(pkg_path, 'package.json')
 	if (!fs.existsSync(path)) return
-	let pkg
-	try {
-		pkg = JSON.parse(fs.readFileSync(path, 'utf-8'))
-		if (!pkg['dependencies']) {
-			return
+	let pkg = JSON.parse(fs.readFileSync(path, 'utf-8'))
+	if (pkg['dependencies']) {
+		for (const dependencie of Object.keys(pkg.dependencies)) {
+			const dependenciePath = join(base_node_modules, dependencie)
+			if (!fs.existsSync(dependenciePath)) {
+				throw new Error('缺少项目依赖: ' + dependencie)
+			}
+			const dest = join(out_path, dependencie)
+			if (fs.existsSync(dest)) continue
+			fs.cpSync(dependenciePath, dest, { recursive: true })
+			copyDependencies(dependenciePath, out_path, base_node_modules)
 		}
-	} catch {
 	}
-	for (const dependencie of Object.keys(pkg.dependencies)) {
-		const dependenciePath = join(base_node_modules, dependencie)
-		if (!fs.existsSync(dependenciePath)) {
-			throw new Error('缺少项目依赖: ' + dependencie)
+	if (pkg['optionalDependencies']) {
+		for (const dependencie of Object.keys(pkg.optionalDependencies)) {
+			const dependenciePath = join(base_node_modules, dependencie)
+			if (!fs.existsSync(dependenciePath)) {
+				continue
+			}
+			const dest = join(out_path, dependencie)
+			if (fs.existsSync(dest)) continue
+			fs.cpSync(dependenciePath, dest, { recursive: true })
+			copyDependencies(dependenciePath, out_path, base_node_modules)
 		}
-		fs.cpSync(dependenciePath, join(out_path, dependencie), { recursive: true })
-		copyDependencies(dependenciePath, out_path, base_node_modules)
 	}
 	return pkg
 }

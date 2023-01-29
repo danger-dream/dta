@@ -39,6 +39,7 @@ function onResize(cb?: Function, show?: boolean) {
 		const height = shadow.value?.clientHeight + 60
 		show !== false && await ipcRenderer.invoke('show')
 		await ipcRenderer.invoke('setHeight', height)
+		setTimeout(() => ipcRenderer.invoke('setHeight', height), 10)
 		cb && cb()
 	})
 }
@@ -63,23 +64,20 @@ window.onblur = function () {
 }
 
 ipcRenderer.on('show', (event, args) => {
-	onResize()
 	if (!args) {
 		input.value?.ref?.focus()
+		onResize()
 		return
 	}
-	const { base64, status, trans, text } = args
+	const { base64, trans, text } = args
 	if (text) {
 		if (text === '~!@#empty') {
 			state.text = '未获取到可用的数据'
-			return
+		} else {
+			state.text = text
+			trans && handleTrans()
 		}
-		state.text = text
-		trans && handleTrans()
-		return
-	}
-	if (!status) {
-		state.text = base64
+		onResize()
 		return
 	}
 	handleOcr(base64, trans)
@@ -91,7 +89,6 @@ async function handleOcr(base64: string, trans: boolean) {
 		const text = await LibOCR(state.config, base64)
 		state.loading_text = ''
 		state.text = text || ''
-		onResize()
 		if (text && trans) {
 			handleTrans().then().catch()
 		}
@@ -99,6 +96,7 @@ async function handleOcr(base64: string, trans: boolean) {
 		state.loading_text = ''
 		state.text = 'OCR识别失败: ' + e.message
 	}
+	onResize()
 }
 
 async function transItem(conf: OcrTranslateConfig, from: Language, to: Language, id: string, item: UITranslate) {

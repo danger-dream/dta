@@ -13,10 +13,10 @@
 		"dist"
 	],
 	"extraResources": [
-		{
+		/*{
 			"from": "build/ShareX.exe",
 			"to": "ShareX.exe"
-		}
+		}*/
 	],
 	"mac": {
 		"artifactName": "${productName}_${version}.${ext}",

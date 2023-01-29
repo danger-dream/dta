@@ -14,7 +14,10 @@
 		"build": "vite build && electron-builder",
 		"pack": "vite build && node build/pack.js"
 	},
-	"dependencies": { },
+	"dependencies": {
+		"node-screenshots": "0.0.14",
+		"color": "4.2.3"
+	},
 	"devDependencies": {
 		"axios": "1.2.4",
 		"asar": "3.2.0",
@@ -30,5 +33,14 @@
 		"sass": "1.57.1",
 		"unplugin-auto-import": "0.12.1",
 		"unplugin-vue-components": "0.22.12"
+	},
+	"optionalDependencies": {
+		"node-screenshots-darwin-arm64": "0.0.14",
+		"node-screenshots-darwin-x64": "0.0.14",
+		"node-screenshots-linux-x64-gnu": "0.0.14",
+		"node-screenshots-linux-x64-musl": "0.0.14",
+		"node-screenshots-win32-arm64-msvc": "0.0.14",
+		"node-screenshots-win32-ia32-msvc": "0.0.14",
+		"node-screenshots-win32-x64-msvc": "0.0.14"
 	}
 }
