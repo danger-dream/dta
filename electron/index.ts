@@ -6,7 +6,6 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 if (process.platform === 'win32') {
 	app.commandLine.appendSwitch('wm-window-animations-disabled')
 }
-app.disableHardwareAcceleration()
 app.setAppUserModelId(app.getName())
 if (!app.requestSingleInstanceLock()) {
 	app.quit()
@@ -83,11 +82,8 @@ app.whenReady().then(() => {
 	ipcMain.handle('setHeight', (e, height) => {
 		win.resizable = true
 		try {
-			
 			win.focus()
-			win.setBounds({
-				x: primaryDisplay.bounds.width - 450 - 40, y: 40, width: 450, height: height
-			})
+			win.setBounds({ x: primaryDisplay.bounds.width - 450 - 40, y: 40, width: 450, height: height })
 			win.setSize(win_width, height, true)
 			win.setMaximumSize(win_width, height)
 			win.setMinimumSize(win_width, height)
@@ -106,8 +102,6 @@ app.whenReady().then(() => {
 		try {
 			const isVisible = win.isVisible()
 			win.hide()
-			//return
-			//const res = await Screenshot()
 			const res = await screenCapture()
 			if (!res) {
 				isVisible && win.show()

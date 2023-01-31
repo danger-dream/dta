@@ -150,7 +150,7 @@
 		} else if (ev.keyCode === 65) { //  a
 			clearRect()
 		} else if (ev.keyCode === 72 || ev.keyCode === 75) { //  h or k
-			ipcRenderer.send('color', document.querySelector(`#clip_copy`))
+			ipcRenderer.send('color', document.querySelector(`#clip_copy`).innerHTML)
 		}
 	})
 	
