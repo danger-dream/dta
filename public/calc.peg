@@ -1,0 +1,91 @@
+{
+  var symbolMap = {
+  };
+}
+
+start = list:expression* {
+    return list
+}
+
+expression = v:variable? __?  n:additive __? {
+	if (v) {
+		symbolMap[v] = n
+	}
+	return n
+}
+
+variable = id:ID __? '=' {
+	return id
+}
+
+additive
+  = left:multiplicative rest:(ADDOP multiplicative)* {
+       let sum = left;
+       for (let x of rest) {
+         if (x[0] === '+'){
+            sum += x[1]
+         }else {
+            sum -= x[1]
+         }
+       }
+       return sum;
+    }
+  / multiplicative
+
+multiplicative
+  = left:primary rest:(MULOP primary)* {
+      return rest.reduce((prod, [op, num]) => {
+        return op === '/' ? prod / num : prod * num
+      }, left);
+    }
+  / primary
+
+primary
+  = integer
+  / func_call
+  / id:ID  {
+        if (Math[id] && typeof Math[id] !== 'function') {
+            return Math[id]
+        }
+        return symbolMap[id];
+    }
+  / LEFTPAR additive:additive RIGHTPAR { return additive; }
+
+integer "integer" = NUMBER_CONSTANT
+
+func_call = name:ID __ LEFTPAR __ p:func_params_expression? __ RIGHTPAR __ {
+	if (Math[name]){
+		return Math[name].apply(null, p)
+	} else {
+		console.log('未知的函数: ' + name)
+		return 0
+	}
+}
+
+func_params_expression = head:additive? tail:(__ "," __ v:additive { return v })* __ {
+	return head ? [head, ...tail] : []
+}
+
+
+ADDOP = PLUS / MINUS
+MULOP = MULT / DIV
+PLUS = __"+"__  { return '+'; }
+MINUS = __"-"__ { return '-'; }
+MULT = __"*"__  { return '*'; }
+DIV = __"/"__   { return '/'; }
+LEFTPAR = __"("__
+RIGHTPAR = __")"__
+ASSIGN = __ '=' __
+NUMBER_CONSTANT = "-"? hex:"0x"? [0-9]+ ("." [0-9]+)? {
+	return hex ? parseInt(text(), 16) : parseFloat(text())
+}
+ID = __ id:$([a-z\u00C0-\uFFFF_]i$([a-z0-9\u00C0-\uFFFF_]i*)) __ { return id; }
+__ = (whitespace / comment)*
+comment = block_comment / line_comment / line1_comment
+char = .
+block_comment = "/*" (!"*/" char)* "*/"
+line_comment = "--" (!EOL char)*
+line1_comment = "//" (!EOL char)*
+whitespace = [ \t\n\r]
+EOL = EOF / [\n\r]+
+EOF = !.

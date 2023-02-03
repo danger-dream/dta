@@ -1,65 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<title>screenhost</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<style type="text/css">
-		:root {
-			--bar-bg: rgba(255, 255, 255, 0.4);
-			--transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-			--blur: blur(25px);
-			--shadow: #0003 0 0 4px;
-			--color: #000;
-			--color-size: 150px;
-			--color-i-size: 10px;
-			--color-i-i: 15;
-		}
+    <meta charset="UTF-8">
+    <title>screenhost</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style type="text/css">
+        :root {
+            --bar-bg: rgba(255, 255, 255, 0.4);
+            --transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            --blur: blur(25px);
+            --shadow: #0003 0 0 4px;
+            --color: #000;
+            --color-size: 150px;
+            --color-i-size: 10px;
+            --color-i-i: 15;
+        }
 
-		::-webkit-scrollbar {display: none;}
+        ::-webkit-scrollbar {
+            display: none;
+        }
 
-		html {cursor: none;}
+        html {
+            cursor: none;
+        }
 
-		body {cursor: default;user-select: none;}
+        body {
+            cursor: default;
+            user-select: none;
+        }
 
-		html, body {margin: 0;width: 100%;height: 100%;color: var(--color);}
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            color: var(--color);
+        }
 
-		#main_photo, #clip_photo {position: absolute;}
+        #main_photo, #clip_photo {
+            position: absolute;
+        }
 
-		#main_photo {z-index: 8;}
+        #main_photo {
+            z-index: 8;
+        }
 
-		#clip_photo {z-index: 10;cursor: crosshair;}
+        #clip_photo {
+            z-index: 10;
+            cursor: crosshair;
+        }
 
-		#mouse_bar {
-			display: flex;flex-direction: column;align-items: center;position: fixed;z-index: 100;border-radius: 8px;
-			box-shadow: var(--shadow);backdrop-filter: var(--blur);background: var(--bar-bg);overflow: hidden;pointer-events: none;
-		}
+        #mouse_bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+            z-index: 100;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            backdrop-filter: var(--blur);
+            background: var(--bar-bg);
+            overflow: hidden;
+            pointer-events: none;
+        }
 
-		#point_color {
-			width: var(--color-size);
-			height: var(--color-size);
-			overflow: hidden;
-			transition: var(--transition);
-			display: grid;
-			grid-template-columns: repeat(var(--color-i-i), var(--color-i-size));
-			grid-template-rows: repeat(var(--color-i-i), var(--color-i-size));
-		}
+        #point_color {
+            width: var(--color-size);
+            height: var(--color-size);
+            overflow: hidden;
+            transition: var(--transition);
+            display: grid;
+            grid-template-columns: repeat(var(--color-i-i), var(--color-i-size));
+            grid-template-rows: repeat(var(--color-i-i), var(--color-i-size));
+        }
 
-		#point_color_t_c {box-shadow: #000 0 0 0 1px, #FFF 0 0 0 2px;position: relative;z-index: 2;}
+        #point_color_t_c {
+            box-shadow: #000 0 0 0 1px, #FFF 0 0 0 2px;
+            position: relative;
+            z-index: 2;
+        }
 
-		/*noinspection CssUnusedSymbol*/
-		#point_color_t_b {box-shadow: #0005 0 0 0 0.25px inset, #FFF5 0 0 0 0.5px inset;opacity: 0.5;}
+        /*noinspection CssUnusedSymbol*/
+        #point_color_t_b {
+            box-shadow: #0005 0 0 0 0.25px inset, #FFF5 0 0 0 0.5px inset;
+            opacity: 0.5;
+        }
 
-		#clip_copy {width: 100%;transition: var(--transition);overflow: hidden;height: 32px;line-height: 32px;text-align: center;white-space: nowrap;}
+        #clip_copy {
+            width: 100%;
+            transition: var(--transition);
+            overflow: hidden;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            white-space: nowrap;
+        }
 
-		#clip_wh {position: absolute;z-index: 11;backdrop-filter: var(--blur);background: var(--bar-bg);border-radius: 8px;box-shadow: var(--shadow);display: flex;}
+        #clip_wh {
+            position: absolute;
+            z-index: 11;
+            backdrop-filter: var(--blur);
+            background: var(--bar-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: flex;
+        }
 
-		#clip_wh > div:focus {outline: none;}
+        #clip_wh > div:focus {
+            outline: none;
+        }
 
-		#clip_wh > div {cursor: text;margin: 8px;}
-	
-	</style>
+        #clip_wh > div {
+            cursor: text;
+            margin: 8px;
+        }
+
+    </style>
 </head>
 
 <body>
@@ -68,12 +124,12 @@
 <canvas id="clip_photo"></canvas>
 <!-- 大小栏 -->
 <div id="clip_wh">
-	<div id="wh" contenteditable="true" title="大小"></div>
+    <div id="wh" contenteditable="true" title="大小"></div>
 </div>
 <!-- 鼠标栏 -->
 <div id="mouse_bar" style="display: none;">
-	<div id="point_color"></div>
-	<div id="clip_copy"></div>
+    <div id="point_color"></div>
+    <div id="clip_copy"></div>
 </div>
 
 <script type="text/javascript">
@@ -93,8 +149,6 @@
 	let moving = false
 	let oe = ''
 	let o_final_rect = ''
-	let the_color = null
-	let the_text_color = [null, null]
 	let direction
 	
 	document.documentElement.style.setProperty('--color-size', `${ color_size * color_i_size }px`)
@@ -120,11 +174,11 @@
 	inner_html = null
 	const point_color_span_list = document.querySelectorAll('#point_color > span')
 	
-	ipcRenderer.on('reflash', (a, x) => {
+	ipcRenderer.on('reflash', (event, args) => {
 		const img = new Image()
-		img.src = x
+		img.src = args
 		img.onerror = function () {
-			winClose()
+			winHide()
 		}
 		img.onload = async function () {
 			main_canvas.width = clip_canvas.width = img.width
@@ -136,21 +190,26 @@
 			document.querySelector('#point_color').style.height = ''
 			document.querySelector('#clip_copy').className = 'clip_copy_h'
 			document.getElementById('mouse_bar').style.pointerEvents = 'none'
-			
+			ipcRenderer.send('sc-show')
 		}
 	})
 	
-	function winClose() {
-		ipcRenderer.send('window-close')
+	function winHide() {
+		final_rect = [0, 0, main_canvas.width, main_canvas.height]
+		o_final_rect = ''
+		direction = 'none'
+		selecting = in_rect = moving = false
+		clip_canvas.style.cursor = 'move'
+		ipcRenderer.send('sc-window-hide')
 	}
 	
 	document.addEventListener('keydown', function (ev) {
 		if (ev.keyCode === 27) { // esc
-			winClose()
+			winHide()
 		} else if (ev.keyCode === 65) { //  a
 			clearRect()
 		} else if (ev.keyCode === 72 || ev.keyCode === 75) { //  h or k
-			ipcRenderer.send('color', document.querySelector(`#clip_copy`).innerHTML)
+			ipcRenderer.send('sc-color', document.querySelector(`#clip_copy`).innerHTML)
 		}
 	})
 	
@@ -165,7 +224,7 @@
 		is_in_clip_rect(e)
 		if (!in_rect) return
 		const b64 = get_clip_photo()
-		ipcRenderer.send('screenhost', b64)
+		ipcRenderer.send('sc-screenhost', b64)
 	}
 	
 	clip_canvas.onmousedown = (e) => {
@@ -217,7 +276,7 @@
 		} else {
 			const is_not_draw_clip_rect = final_rect[2] === main_canvas.width && final_rect[3] === main_canvas.height
 			if (!in_rect && is_not_draw_clip_rect) {
-				winClose()
+				winHide()
 			} else {
 				clearRect()
 			}
@@ -321,6 +380,7 @@
 		final_rect_fix()
 		draw_clip_rect()
 	}
+	
 	document.querySelector('#clip_wh').onkeydown = (e) => {
 		if (e.key === 'Enter') {
 			e.preventDefault()
@@ -356,12 +416,10 @@
 				// 光标中心点
 				point_color_span_list[ii].id = 'point_color_t_c'
 				point_color_span_list[ii].style.background = `rgba(${ color_g[0] }, ${ color_g[1] }, ${ color_g[2] }, ${ color_g[3] })`
-				// 颜色文字
-				the_color = color_g
 				// 改变颜色文字和样式
 				try {
 					const color = Color.rgb(color_g)
-					the_text_color = [color.hex(undefined), color.isLight() ? '#000' : '#FFF']
+					const the_text_color = [color.hex(undefined), color.isLight() ? '#000' : '#FFF']
 					document.querySelector(`#clip_copy`).style.backgroundColor = the_text_color[0]
 					const main_el = document.querySelector(`#clip_copy`)
 					// 只改变默认格式的字体颜色和内容，并定位展示

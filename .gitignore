@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+
+cmake-build-debug
 node_modules
 dist
 dist-ssr
@@ -26,6 +28,5 @@ config.ts
 *.sw?
 
 # lockfile
-package-lock.json
 pnpm-lock.yaml
 yarn.lock

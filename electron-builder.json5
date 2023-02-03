@@ -1,45 +1,32 @@
-/**
- * @see https://www.electron.build/configuration/configuration
- */
 {
-	"appId": "BobForElectron",
+	"productName": "DesktopToolsAssistant",
+	"appId": "dta",
 	"asar": true,
 	"icon": "public/favicon.ico",
 	"directories": {
 		"output": "release"
 	},
 	"files": [
+		"build/Release/win32.node",
 		"dist-electron",
 		"dist"
 	],
 	"extraResources": [
-		/*{
-			"from": "build/ShareX.exe",
+		{
+			"from": "pack/ShareX.exe",
 			"to": "ShareX.exe"
-		}*/
+		}
 	],
-	"mac": {
-		"artifactName": "${productName}_${version}.${ext}",
-		"target": [
-			"dmg"
-		]
-	},
 	"win": {
 		"target": [
 			{
-				"target": "nsis",
+				"target": "zip",
 				"arch": [
 					"x64"
 				]
 			}
 		],
-		"artifactName": "${productName}_${version}.${ext}"
+		"artifactName": "${productName}.${ext}"
 	},
-	"nsis": {
-		"oneClick": false,
-		"perMachine": false,
-		"allowToChangeInstallationDirectory": true,
-		"deleteAppDataOnUninstall": false
-	},
-	"afterPack": "build/afterPack.js"
+	"afterPack": "pack/afterPack.js"
 }

@@ -9,17 +9,27 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
-		"lib": ["ESNext", "DOM"],
+		"lib": [
+			"ESNext",
+			"DOM"
+		],
 		"skipLibCheck": true,
 		"noEmit": true,
-		"compilerOptions": {
-			"types": [
-				"./types.d.ts"
+		"paths": {
+			"@/*": [
+				"./*"
 			]
 		}
 	},
-	"include": ["src", "types.d.ts", "global.ts"],
+	"include": [
+		"src",
+		"src/translate/lib/helper.ts",
+		"global.d.ts",
+		"types.d.ts"
+	],
 	"references": [
-		{ "path": "./tsconfig.node.json" }
+		{
+			"path": "./tsconfig.node.json"
+		}
 	]
 }

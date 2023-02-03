@@ -1,28 +1,26 @@
-# Bob for Electron
+# Desktop Tools Assistant
 
-Bob for Electorn是一款仿[Bob](https://bobtranslate.com/)的OCR、翻译、取色工具，使用Electron、Vite、Vue3、Element-Plus开发。
+Desktop Tools Assistant是一款仿[Bob](https://bobtranslate.com/)、[PopClip](https://pilotmoon.com/popclip/).的屏幕取词、OCR、翻译、取色工具，使用Electron、Vite、Vue3开发。
 
-图片识别、翻译功能可仅使用自建服务（paddocr + meta-ai fairseq nllb），所有代码完全开源，请自行编译使用
+图片识别、翻译功能可仅使用自建服务（paddocr + meta-ai fairseq nllb）
 
 ## 截图
 
 ![主界面](image/主界面.png)
 ![翻译.png](image%2F%E7%BF%BB%E8%AF%91.png)
 ![查词](image/查词.png)
-![配合划词翻译.png](image%2F%E9%85%8D%E5%90%88%E5%88%92%E8%AF%8D%E7%BF%BB%E8%AF%91.png)
-![SnipDoPro.png](image%2FSnipDoPro.png)
 
 ## 已接入的OCR
 
-* [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 识别率还行，关键是docker部署在自己的服务器，比较放心
+* [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 识别率还行，部署在自己的服务器比较放心。后面考虑集成本地版
   ```bash
   docker run --name ppdocr -p 8866:8866 -d drainkeng/paddleocr:2.6-cpu-latest
   ```
-* [百度文字识别OCR](https://cloud.baidu.com/doc/OCR/index.html) 用Bob的时候就充过值，总不能不用了吧...
+* [百度文字识别OCR](https://cloud.baidu.com/doc/OCR/index.html) 备选方案
 
 ## 已接入语种识别
 
-* unicode识别，不涉及语义，勉强能用
+* unicode识别，不涉及语义
 * [Google Cloud Translation API detect](https://cloud.google.com/translate/docs/basic/detecting-language)
 * [腾讯云 语种识别](https://cloud.tencent.com/document/api/551/15620) 这个是免费的还是和文本翻译共用免费额度不太清楚...
 * 默认使用自动模式： 腾讯云 -> Google -> unicode，要快的话直接换unicode
@@ -241,26 +239,17 @@ export default {
 } as IConfig
 ```
 
-## ......啰嗦几句
+## ......
 
-* 因工作原因切换至windows平台，少了[PopClip](https://pilotmoon.com/popclip/) + [Bob](https://bobtranslate.com/).怎么都觉得不对劲
-* 网上能找到的类似的工具我都试了一遍，没一个能让我满意的，趁过年有点时间自己仿一个
-* 一开始c#做的版本叫Bob for Windows，界面太丑了，我自己都看不下去，不放出来献丑了
-* 换到Electron又没法解决截图、取色问题(原本是调的qq CameraDll.dll)，github上找到了[ShareX](https://github.com/ShareX/ShareX).能满足我的需求，但是太重了，精简一番后也开源了[ShareX](https://github.com/exaggerated-dream/ShareX).截图界面"h"键取色
 * 飞桨OCR部署完成后的地址是host:port/predict/ocr_system.我自己代理了一层到cdn，要用的话记得改成你自己的url
-* openl我默认禁用了，免费额度太少，应急用吧，反正很多是重合的，不重合的效果也不是很理想
+* openl默认禁用了，免费额度太少，应急用吧，反正很多是重合的，不重合的效果也不是很理想
 * google api调用是自己撸了个[express api google-cloud-api-server](https://github.com/exaggerated-dream/google-cloud-api-serve).部署在hk服务器上用的，也有其他方案，比如：Cloudflare Workers、走镜像站、改hosts
 * google的免费额度比较少，单独加了层仅中转英时才使用的逻辑
 * fairseq需要自己部署，docker部署很简单，但对配置要求有些高，不一定要GPU，8U 8G的话速度还行，我没用docker，但接口我适配了docker版的，对了，记得改url
 * fairseq docker部署完成后语种支持不全，需要改容器中的/app/config.py translation_langs，修改为translation_langs = ["eng_Latn", "fra_Latn", "zho_Hans", "kor_Hang", "jpn_Jpan", "deu_Latn", "rus_Cyrl"]
 * 只支持了部分语言，有需要的自己加，文末有各平台语言编码对照链接
-* 项目中的build/ShareX.exe是我编译的，不放心的可以用我精简过的ShareX编译后替换掉就行
-* 设计了配置界面的dom生成规则，要和家人出去几天就懒得继续写了
 * 只使用了常用的包，理论都能自己打包出来
-* 要搭配[AutoHotKey 2.0](https://autohotkey.com).食用效果最佳，划词用的Snip.Do PRO，加了个快捷键文本扩展(ctrl + alt + shift + f12
-* AutoHotKe有C#替代品, [keysharp](https://bitbucket.org/mfeemster/keysharp) . 但没法触发alt + LButton -> ctrl + LButton，代码中大片注释，看着心累，懒得集成了
-* 理论上electron用ffi也能替代掉autohotkey，但这个打包对不熟悉的人来说有点痛苦，性能也是问题，就算了吧
-* 其实用tauri或者wails来做性能、打包后的体积会更好，能解决本地化调用的问题，一个程序完成屏幕取词、键盘映射、截图取色、翻译。但轮子太少，以后有时间在说吧
+* 搭配[AutoHotKey 2.0](https://autohotkey.com)，做改键会更舒服
 
 ## Autohotkey 2.0脚本
 
@@ -272,9 +261,7 @@ export default {
 ; ^ = CTRL
 ; + = SHIFT
 ; # = WIN
-title := "Mac键盘映射"
-
-#HotIf WinActive("ahk_exe webstorm64.exe") == 0 ; webstorm我有套自己的键盘映射，所以过滤掉 
+#HotIf WinActive("ahk_exe webstorm64.exe") == 0 and WinActive("ahk_exe clion.exe") == 0 
 $!c::Send "^c"     ;alt + c -> ctrl + c
 $!x::Send "^x"     ;alt + x -> ctrl + x
 $!v::Send "^v"     ;alt + v -> ctrl + v
@@ -282,14 +269,8 @@ $!a::Send "^a"     ;alt + a -> ctrl + a
 $!s::Send "^s"     ;alt + s -> ctrl + s
 $!w::              ;alt + w -> ctrl + w | ctrl + alt + z | esc
 {
-	; 如果是微信的话
 	if (WinActive("ahk_exe WeChat.exe") != 0) {
-		;   如果是微信的图片打开
-		if (WinActive("ahk_class ImagePreviewWnd") != 0) {
-			Send "{esc}" ;按esc
-		} else {
-			Send "^!z" ;ctrl + alt + z
-		}
+		Send "{esc}" ;按esc
 	} else {
 		Send "^w" ;ctrl + w
 	}
@@ -328,13 +309,6 @@ $!Right::Send "{End}"            ;alt + 方向键右 -> End键
 $!+Left::Send "+{Home}"          ;alt + shift + 方向键左 -> shift + Home键
 $!+Right::Send "+{End}"          ;alt + shift + 方向键右 -> shift + End键
 #HotIf
-
-$^!+F12::                        ;给Snip.Do调用的
-{
-	Send "^c"
-	Send "^+{F3}"
-	Return
-}
 
 A_MenuMaskKey := "vkFF"
 #UseHook

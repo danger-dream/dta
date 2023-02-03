@@ -31,19 +31,6 @@ export declare interface OcrTranslateConfig extends Record<string, any> {
 	zh2en_enable?: boolean
 }
 
-export declare interface IConfig {
-	init: boolean
-	pinup: boolean
-	position: 'default' | 'last' | 'center' | 'mouse' | 'right-top'
-	current_ocr: 'paddocr' | 'baidu'
-	lang_testing: 'auto' | 'local' | 'tencent' | 'google'
-	ocr_clipboard: boolean
-	ocr: OcrTranslateConfig[]
-	translate: OcrTranslateConfig[]
-	languages: Languages[]
-	timeout: number
-	local_ip?: string
-}
 
 export declare interface UITranslate {
 	name: string
@@ -82,4 +69,27 @@ export declare interface UITranslate {
 		/** 网络释义 */
 		web: { name: string, list: string[] }[]
 	}
+}
+
+export declare interface ITranslate {
+	pinup: boolean
+	position: 'default' | 'last' | 'center' | 'mouse' | 'right-top'
+	current_ocr: 'paddocr' | 'baidu'
+	lang_testing: 'auto' | 'local' | 'tencent' | 'google'
+	ocr_clipboard: boolean
+	ocr: OcrTranslateConfig[]
+	translate: OcrTranslateConfig[]
+	languages: Languages[]
+	timeout: number
+	local_ip?: string
+}
+
+export declare interface IConfig {
+	init: boolean
+	screenhost_type: 'shareX' | 'html'
+	takeword: {
+		enable: boolean
+		auto_hide_time: number
+	}
+	trans: ITranslate
 }
