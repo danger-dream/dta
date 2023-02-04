@@ -27,35 +27,6 @@ struct DisplayRect {
 	int dmPelsHeight = 0;
 };
 
-struct _MMBitmap {
-	uint8_t *imageBuffer;  /* Pixels stored in Quad I format; i.e., origin is in
-                            * top left. Length should be height * bytewidth. */
-	size_t width;          /* Never 0, unless image is NULL. */
-	size_t height;         /* Never 0, unless image is NULL. */
-	size_t bytewidth;      /* The aligned width (width + padding). */
-	uint8_t bitsPerPixel;  /* Should be either 24 or 32. */
-	uint8_t bytesPerPixel; /* For convenience; should be bitsPerPixel / 8. */
-};
-
-typedef struct _MMBitmap MMBitmap;
-typedef MMBitmap *MMBitmapRef;
-
-typedef struct _BITMAP : BITMAPINFO {
-	_BITMAP(int height, int width) {
-		bmiHeader.biWidth = width;
-		bmiHeader.biHeight = -height;
-		bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmiHeader.biPlanes = 1;
-		bmiHeader.biBitCount = 32;
-		bmiHeader.biCompression = BI_RGB;
-		bmiHeader.biSizeImage = 0;
-		bmiHeader.biXPelsPerMeter = 0;
-		bmiHeader.biYPelsPerMeter = 0;
-		bmiHeader.biClrUsed = 0;
-		bmiHeader.biClrImportant = 0;
-	}
-} MAKEBITMAPINFO;
-
 struct MouseEventContext {
 public:
 	int nCode;
