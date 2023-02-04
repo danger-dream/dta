@@ -10,15 +10,6 @@
     <Filter Include="..\electron\win32">
       <UniqueIdentifier>{789FEF16-EFE7-512E-F91B-DF7E0D72FB79}</UniqueIdentifier>
     </Filter>
-    <Filter Include="..">
-      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\electron">
-      <UniqueIdentifier>{2AC18345-523C-4C0A-9F39-F87ED4DCD4EB}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\electron\win32">
-      <UniqueIdentifier>{789FEF16-EFE7-512E-F91B-DF7E0D72FB79}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D:">
       <UniqueIdentifier>{E5D29F2B-0177-9942-CA95-0FF700094F89}</UniqueIdentifier>
     </Filter>
@@ -43,9 +34,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\electron\win32\main.cpp">
-      <Filter>..\electron\win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\electron\win32\fpng.cpp">
       <Filter>..\electron\win32</Filter>
     </ClCompile>
     <ClCompile Include="D:\work\DTA\node_modules\node-gyp\src\win_delay_load_hook.cc">

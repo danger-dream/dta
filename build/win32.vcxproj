@@ -140,9 +140,6 @@
     <ClCompile Include="..\electron\win32\main.cpp">
       <ObjectFileName>$(IntDir)\electron\win32\main.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="..\electron\win32\fpng.cpp">
-      <ObjectFileName>$(IntDir)\electron\win32\fpng.obj</ObjectFileName>
-    </ClCompile>
     <ClCompile Include="D:\work\DTA\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

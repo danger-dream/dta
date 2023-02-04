@@ -10,8 +10,6 @@ include_directories(
 )
 
 add_executable(dta
-	electron/win32/fpng.cpp
-	electron/win32/fpng.h
 	electron/win32/main.cpp
 	electron/win32/main.hpp
 	)

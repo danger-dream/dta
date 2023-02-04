@@ -15,6 +15,7 @@ dist-ssr
 dist-electron
 release
 *.local
+build
 config.ts
 
 # Editor directories and files

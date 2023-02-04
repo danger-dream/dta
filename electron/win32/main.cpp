@@ -54,7 +54,7 @@ void onMainThread(Napi::Env env, Napi::Function function, MouseEventContext *pMo
 }
 
 LRESULT CALLBACK HookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
-	MSLLHOOKSTRUCT *data = (MSLLHOOKSTRUCT *) lParam;
+	auto data = (MSLLHOOKSTRUCT *) lParam;
 	
 	if (!(wParam == WM_MOUSEMOVE && !captureMouseMove)) {
 		auto pMouseEvent = new MouseEventContext();
@@ -72,9 +72,9 @@ LRESULT CALLBACK HookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
 
 DWORD WINAPI MouseHookThread(LPVOID lpParam) {
 	MSG msg;
-	_hook = SetWindowsHookEx(WH_MOUSE_LL, HookCallback, NULL, 0);
+	_hook = SetWindowsHookEx(WH_MOUSE_LL, HookCallback, nullptr, 0);
 	
-	while (GetMessage(&msg, NULL, 0, 0) > 0) {
+	while (GetMessage(&msg, nullptr, 0, 0) > 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -83,15 +83,15 @@ DWORD WINAPI MouseHookThread(LPVOID lpParam) {
 }
 
 void stopMouseHook() {
-	if (_hook != NULL) {
+	if (_hook != nullptr) {
 		UnhookWindowsHookEx(_hook);
-		_hook = NULL;
+		_hook = nullptr;
 	}
-	if (_hThread != NULL) {
+	if (_hThread != nullptr) {
 		_tsfn.Release();
-		_tsfn = NULL;
+		_tsfn = nullptr;
 		TerminateThread(_hThread, 0);
-		_hThread = NULL;
+		_hThread = nullptr;
 	}
 }
 
@@ -102,12 +102,11 @@ void _stopMouseHook(const Napi::CallbackInfo &info) {
 Napi::Boolean createMouseHook(const Napi::CallbackInfo &info) {
 	stopMouseHook();
 	DWORD dwThreadID;
-	_hThread = CreateThread(NULL, 0, MouseHookThread, NULL, CREATE_SUSPENDED, &dwThreadID);
+	_hThread = CreateThread(nullptr, 0, MouseHookThread, nullptr, CREATE_SUSPENDED, &dwThreadID);
 	_tsfn = Napi::ThreadSafeFunction::New(info.Env(), info[0].As<Napi::Function>(), "WH_MOUSE_LL Hook Thread", 512, 1,
 	                                      [](Napi::Env) {
 		                                      CloseHandle(_hThread);
-	                                      }
-	);
+	                                      });
 	if (_hThread) {
 		ResumeThread(_hThread);
 	}
@@ -151,7 +150,7 @@ struct MonitorRects {
 	}
 	
 	MonitorRects() {
-		EnumDisplayMonitors(0, 0, MonitorEnum, (LPARAM) this);
+		EnumDisplayMonitors(nullptr, nullptr, MonitorEnum, (LPARAM) this);
 	}
 };
 
@@ -181,25 +180,25 @@ Napi::Value getAllMonitor(const Napi::CallbackInfo &info) {
 uint8_t *bitmap2png(HBITMAP hbitmap) {
 	Gdiplus::Bitmap bmp(hbitmap, nullptr);
 	IStream *istream = nullptr;
-	if (CreateStreamOnHGlobal(NULL, TRUE, &istream) != 0)
-		return 0;
+	if (CreateStreamOnHGlobal(nullptr, TRUE, &istream) != 0)
+		return nullptr;
 	CLSID clsid_png;
 	if (CLSIDFromString(L"{557cf406-1a04-11d3-9a73-0000f81ef32e}", &clsid_png) != 0)
-		return 0;
+		return nullptr;
 	if (bmp.Save(istream, &clsid_png) != Gdiplus::Status::Ok)
-		return 0;
+		return nullptr;
 	
-	HGLOBAL hg = NULL;
+	HGLOBAL hg = nullptr;
 	if (GetHGlobalFromStream(istream, &hg) != S_OK)
-		return 0;
+		return nullptr;
 	
 	SIZE_T len = GlobalSize(hg);
 	auto mem = (uint8_t *) malloc(len);
 	LPVOID pimage = GlobalLock(hg);
-	if (!pimage || mem == 0) {
+	if (!pimage || mem == nullptr) {
 		GlobalUnlock(hg);
 		istream->Release();
-		return 0;
+		return nullptr;
 	}
 	memcpy(mem, pimage, len);
 	GlobalUnlock(hg);
@@ -282,94 +281,10 @@ Napi::Value capture(const Napi::CallbackInfo &info) {
 	return result;
 }
 
-
-Napi::Value capture_fpng(const Napi::CallbackInfo &info) {
-	auto env = info.Env();
-	int x = 0;
-	int y = 0;
-	int w = 2560;
-	int h = 1600;
-	if (info.Length() == 4) {
-		x = info[0].As<Napi::Number>().Int32Value();
-		y = info[1].As<Napi::Number>().Int32Value();
-		w = info[2].As<Napi::Number>().Int32Value();
-		h = info[3].As<Napi::Number>().Int32Value();
-	} else if (info.Length() == 2) {
-		w = info[0].As<Napi::Number>().Int32Value();
-		h = info[1].As<Napi::Number>().Int32Value();
-	} else {
-		MonitorRects monitor;
-		POINT point;
-		GetCursorPos(&point);
-		
-		for (const DisplayRect &rect: monitor.rects) {
-			if (point.x >= rect.rect.left && point.x <= rect.rect.left + rect.dmPelsWidth &&
-			    point.y >= rect.rect.top && point.y <= rect.rect.top + rect.dmPelsHeight) {
-				x = point.x;
-				y = point.y;
-				w = rect.dmPelsWidth;
-				h = rect.dmPelsHeight;
-				break;
-			}
-		}
-		
-	}
-	auto screenDC = GetDC(NULL);
-	if (screenDC == NULL) return env.Undefined();
-	int size = 4 * w * h;
-	BITMAPINFO bi{};
-	bi.bmiHeader.biSize = sizeof(bi.bmiHeader);
-	bi.bmiHeader.biWidth = w;
-	bi.bmiHeader.biHeight = -h;
-	bi.bmiHeader.biPlanes = 1;
-	bi.bmiHeader.biBitCount = 32;
-	bi.bmiHeader.biCompression = BI_RGB;
-	bi.bmiHeader.biSizeImage = (DWORD) size;
-	bi.bmiHeader.biXPelsPerMeter = 0;
-	bi.bmiHeader.biYPelsPerMeter = 0;
-	bi.bmiHeader.biClrUsed = 0;
-	bi.bmiHeader.biClrImportant = 0;
-	uint8_t *pixels;
-	auto dib = CreateDIBSection(screenDC, &bi, DIB_RGB_COLORS, (void **) &pixels, NULL, 0);
-	if (dib == NULL) {
-		ReleaseDC(NULL, screenDC);
-		return env.Undefined();
-	}
-	HDC memdc = NULL;
-	if ((memdc = CreateCompatibleDC(screenDC)) == NULL ||
-	    SelectObject(memdc, dib) == NULL ||
-	    !BitBlt(memdc, 0, 0, w, h, screenDC, 0, 0, SRCCOPY)) {
-		if (memdc != NULL) DeleteDC(memdc);
-		DeleteObject(dib);
-		ReleaseDC(NULL, screenDC);
-		return env.Undefined();
-	}
-	auto result = Napi::Object::New(env);
-	result["x"] = x;
-	result["y"] = y;
-	result["width"] = w;
-	result["height"] = h;
-	for (int i = 0; i < size; i += 4) {
-		std::swap(pixels[i], pixels[i + 2]);
-	}
-	std::vector<uint8_t> fpng_file_buf;
-	if (fpng::fpng_encode_image_to_memory((void *) pixels, w, h, 4, fpng_file_buf)) {
-		auto buf = Napi::Array::New(env, fpng_file_buf.size());
-		for (int i = 0; i < fpng_file_buf.size(); i++) {
-			buf[i] = pixels[i];
-		}
-		result["image"] = buf;
-	}
-	DeleteDC(memdc);
-	DeleteObject(dib);
-	ReleaseDC(NULL, screenDC);
-	return result;
-}
-
 Napi::Value getColor(const Napi::CallbackInfo &info) {
-	HDC context = GetDC(NULL);
+	HDC context = GetDC(nullptr);
 	const unsigned int color = GetPixel(context, info[0].As<Napi::Number>().Int32Value(), info[1].As<Napi::Number>().Int32Value());
-	ReleaseDC(NULL, context);
+	ReleaseDC(nullptr, context);
 	return Napi::Number::New(info.Env(), color);
 }
 
@@ -393,7 +308,7 @@ Napi::Value keyToggle(const Napi::CallbackInfo &info) {
 	input.ki.wVk = 0;
 	input.ki.dwExtraInfo = 0;
 	input.ki.dwFlags = dwFlags;
-	input.ki.wScan = MapVirtualKeyExA(key, 0, 0);
+	input.ki.wScan = MapVirtualKeyExA(key, 0, nullptr);
 	auto res = SendInput(1, &input, sizeof(INPUT));
 	return Napi::Number::New(info.Env(), res);
 }
@@ -474,9 +389,9 @@ Napi::Value getCaretPos(const Napi::CallbackInfo &info) {
 	POINT lpPoint{};
 	auto env = info.Env();
 	HWND pHwnd = GetForegroundWindow();
-	AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(pHwnd, NULL), TRUE);
+	AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(pHwnd, nullptr), TRUE);
 	auto cp = GetCaretPos(&lpPoint);
-	AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(pHwnd, NULL), FALSE);
+	AttachThreadInput(GetCurrentThreadId(), GetWindowThreadProcessId(pHwnd, nullptr), FALSE);
 	if (cp) {
 		auto result = Napi::Object::New(env);
 		result["x"] = lpPoint.x;
@@ -488,12 +403,10 @@ Napi::Value getCaretPos(const Napi::CallbackInfo &info) {
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
-	fpng::fpng_init();
 	exports["createMouseHook"] = Napi::Function::New(env, createMouseHook);
 	exports["enableMouseMove"] = Napi::Function::New(env, enableMouseMove);
 	exports["stopMouseHook"] = Napi::Function::New(env, _stopMouseHook);
 	exports["capture"] = Napi::Function::New(env, capture);
-	exports["capture_fpng"] = Napi::Function::New(env, capture_fpng);
 	exports["getColor"] = Napi::Function::New(env, getColor);
 	exports["getAllMonitor"] = Napi::Function::New(env, getAllMonitor);
 	exports["keyToggle"] = Napi::Function::New(env, keyToggle);
