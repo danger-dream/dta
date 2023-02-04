@@ -90,6 +90,7 @@ export declare interface IConfig {
 	takeword: {
 		enable: boolean
 		auto_hide_time: number
+		skip?: string[]
 	}
 	trans: ITranslate
 }

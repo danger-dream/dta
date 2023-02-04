@@ -1,13 +1,13 @@
-import { BrowserWindow, clipboard, Point, screen, ipcMain } from 'electron'
+import { BrowserWindow, clipboard, ipcMain, Point, screen } from 'electron'
 import { enable } from '@electron/remote/main'
 import { join } from 'node:path'
-import win32 from './win32'
-import { MouseAction, MouseButton } from './win32'
-import { getRightMouseActions, callRightMouseAction } from './RightMouseAction'
+import win32, { MouseAction, MouseButton } from './win32'
+import { callRightMouseAction, getRightMouseActions } from './RightMouseAction'
 import Store from './store'
 
 let win: BrowserWindow | null = null
-let mouse_history = [] as { type: 'down' | 'up' | 'click', st: number, x: number, y: number }[]
+let mouse_history = [] as { type: MouseAction, st: number, x: number, y: number }[]
+const win_info_catch = {} as Record<number, boolean>
 const winHeight = 22 + 10 * 2
 const winWidht = 22 + 10
 
@@ -96,24 +96,45 @@ export default async function (store: Store) {
 			return
 		}
 		if (btn !== MouseButton.LEFT) return
+		if (store.config.takeword.skip?.length > 0) {
+			const pid = win32.getForegroundWindowPid()
+			if (win_info_catch[pid] !== undefined) {
+				if (win_info_catch[pid]) return
+			} else {
+				let skip = false
+				const proc = win32.findProcess(pid)
+				if (proc) {
+					const exeFile = proc.exeFile?.toLowerCase() || ''
+					const exePath = proc.path?.toLowerCase() || ''
+					for (const item of store.config.takeword.skip) {
+						const lowerItem = item.toLowerCase()
+						if (exeFile === lowerItem || exePath.startsWith(lowerItem)) {
+							skip = true
+							break
+						}
+					}
+				}
+				win_info_catch[pid] = skip
+				if (skip) return
+			}
+		}
 		if (action === MouseAction.Down) {
-			mouse_history.push({ type: 'down', st: Date.now(), x, y })
+			mouse_history.push({ type: MouseAction.Down, st: Date.now(), x, y })
 		} else if (action === MouseAction.Up) {
 			const last = mouse_history[mouse_history.length - 1]
-			if (!last || last.type !== 'down') {
+			if (!last || last.type !== MouseAction.Down) {
 				handlePointHideWin()
 				return
 			}
 			const st = Date.now()
-			const cur = { type: 'up', st, x, y } as any
-			cur.type = 'click'
+			const cur = { type: MouseAction.Click, st, x, y } as any
 			cur.st = last.st
-			let action = 'click'
+			let action = MouseAction.Click
 			if (st - last.st < win32.getDoubleClickTime()) {
 				let pLast = mouse_history[mouse_history.length - 2]
-				if (pLast?.type === 'click') {
+				if (pLast?.type === MouseAction.Click) {
 					if (st - pLast.st < win32.getDoubleClickTime() && pLast.x === x && pLast.y === y) {
-						action = 'dbclick'
+						action = MouseAction.DBClick
 					} else {
 						mouse_history = [cur]
 					}
@@ -121,13 +142,13 @@ export default async function (store: Store) {
 					mouse_history = [cur]
 				}
 			} else {
-				action = 'long'
+				action = MouseAction.LongClick
 				mouse_history = []
 			}
 			const distance_x = Math.abs(x - last.x)
 			const distance_y = Math.abs(y - last.y)
 			if (distance_x < 10 && distance_y < 10) {
-				if (action !== 'dbclick') {
+				if (action !== MouseAction.DBClick) {
 					handlePointHideWin()
 					return
 				}

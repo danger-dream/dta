@@ -3,7 +3,10 @@ export enum MouseAction {
 	Move = 1,
 	Up,
 	Down,
-	Wheel
+	Wheel,
+	Click,
+	DBClick,
+	LongClick
 }
 
 export enum MouseButton {

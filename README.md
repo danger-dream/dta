@@ -51,8 +51,7 @@ docker run --name trans -d -p 8080:8080 rosasalberto/translation-service
 * ### 不加没法运行!!!!
 
 ```typescript
-import { IConfig } from '../../types'
-import { Language } from '../../global'
+import { IConfig } from '@/types'
 
 const services = [
 	{ zh: '谷歌翻译', en: 'google' },
@@ -70,172 +69,188 @@ const services = [
 ]
 
 export default {
-	init: false,
-	pinup: false,
-	position: 'right-top',    // 习惯在右上角打开，不加功能了
-	lang_testing: 'auto',
-	current_ocr: 'paddocr',
-	ocr_clipboard: true,
-	ocr: [
-		{
-			enable: true,
-			name: 'baidu',
-			label: '百度通用场景文本识别',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'client_id', label: '客户端编号(client_id)', type: 'password', required: true },
-				{ name: 'client_secret', label: '客户端密钥(client_secret)', type: 'password', required: true },
-				{ name: 'type', label: '接口类型', type: 'select', options: ['高精度', '高精度含坐标', '标准', '标准含坐标'] },
-				{ name: 'detect_direction', label: '自动检查方向', type: 'switch' }
-			],
-			token_url: 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials',
-			url: 'https://aip.baidubce.com/rest/2.0/ocr/v1/',
-			client_id: '填你自己申请的',
-			client_secret: '填你自己申请的',
-			detect_direction: true,
-			type: '标准' as '高精度' | '高精度含坐标' | '标准' | '标准含坐标', //没有实现根据坐标还原文本格式
-			type_action: {
-				标准: 'general_basic',
-				标准含坐标: 'general',
-				高精度: 'accurate_basic',
-				高精度含坐标: 'accurate'
-			}
-		},
-		{
-			enable: true,
-			name: 'paddocr',
-			label: '飞桨OCR - 自建',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'url', label: '接口地址', type: 'input', required: true }
-			],
-			url: 'https://你自己的服务器地址/api/v2/paddocr'
-		}
-	],
-	translate: [ // 调整此处顺序可改变页面显示顺序，也可自行实现相关排序逻辑
-		{
-			enable: true,
-			name: 'youdao',
-			label: '有道翻译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'appKey', label: '应用ID', type: 'password', required: true },
-				{ name: 'key', label: '应用密钥(key)', type: 'password', required: true }
-			],
-			url: 'http://openapi.youdao.com/api',
-			appKey: '填你自己申请的',
-			key: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'baidu',
-			label: '百度翻译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'appid', label: '应用编号(appid)', type: 'password', required: true },
-				{ name: 'secret', label: '应用密钥(secret)', type: 'password', required: true }
-			],
-			url: 'https://fanyi-api.baidu.com/api/trans/vip/translate',
-			appid: '填你自己申请的',
-			secret: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'google',
-			label: '谷歌翻译',
-			zh2en_enable: true,
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'url', label: '访问地址(URL)', type: 'input', required: true },
-				{ name: 'projectId', label: '项目编号(projectId)', type: 'password', required: true },
-				{ name: 'apiKey', label: 'Api Key', type: 'password', required: true }
-			],
-			url: 'https://你自己的服务器地址/api/v2/google/trans',
-			projectId: '填你自己申请的',
-			apiKey: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'tencent',
-			label: '腾讯翻译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'secretId', label: 'secretId', type: 'password', required: true },
-				{ name: 'secretKey', label: 'secretKey', type: 'password', required: true }
-			],
-			url: 'tmt.tencentcloudapi.com',
-			region: 'ap-chengdu',
-			secretId: '填你自己申请的',
-			secretKey: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'metaAI',
-			label: 'Facebook Meta AI - 自建',
-			ui: [{ name: 'enable', label: '是否启用', type: 'switch' }],
-			url: 'https://你的服务器地址/api/v2/meta-ai'
-		},
-		{
-			enable: true,
-			name: 'wechat',
-			label: '微信翻译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'appid', label: 'appid', type: 'password', required: true },
-				{ name: 'secret', label: 'secret', type: 'password', required: true }
-			],
-			url: 'https://api.weixin.qq.com/cgi-bin',
-			appid: '填你自己申请的',
-			secret: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'caiyun',
-			label: '彩云小译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'token', label: 'token', type: 'password', required: true }
-			],
-			url: 'http://api.interpreter.caiyunai.com/v1/translator',
-			token: '填你自己申请的'
-		},
-		{
-			enable: true,
-			name: 'fsou',
-			label: 'F搜翻译',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' }
-			],
-			url: 'https://fsoufsou.com/search-engine-listing/v1/dictionary/translate'
-		},
-		{
-			enable: false,
-			name: 'openl',
-			label: 'OpenL',
-			ui: [
-				{ name: 'enable', label: '是否启用', type: 'switch' },
-				{ name: 'apikey', label: 'apikey', type: 'password', required: true },
-				{
-					name: 'use_services', label: '服务', type: 'select', multi: true, options: services.map(x => {
-						return { label: x.zh, value: x.en }
-					})
+	init: true,
+	// 使用那种方式截图
+	// shareX: 速度更快，截图后退出进程，不资源，框选后直接截图
+	// html: napi截图、html写的，要多开一个bw，而且napi返回buffer后v8不会马上回收内存，比较占资源，性能也一般
+	screenhost_type: 'shareX',
+	takeword: {
+		//  是否启用取词
+		enable: true,
+		//  自动隐藏的时间：秒
+		auto_hide_time: 1,
+		//  不取词的进程名称、路径
+		skip: ['clion64.exe', 'webstorm64.exe']
+	},
+	trans: {
+		pinup: false,
+		position: 'right-top',
+		lang_testing: 'auto',
+		current_ocr: 'paddocr',
+		ocr_clipboard: true,
+		timeout: 15,
+		local_ip: '172.20.0.',
+		ocr: [
+			{
+				enable: true,
+				name: 'baidu',
+				label: '百度通用场景文本识别',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'client_id', label: '客户端编号(client_id)', type: 'password', required: true },
+					{ name: 'client_secret', label: '客户端密钥(client_secret)', type: 'password', required: true },
+					{ name: 'type', label: '接口类型', type: 'select', options: ['高精度', '高精度含坐标', '标准', '标准含坐标'] },
+					{ name: 'detect_direction', label: '自动检查方向', type: 'switch' }
+				],
+				token_url: 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials',
+				url: 'https://aip.baidubce.com/rest/2.0/ocr/v1/',
+				client_id: '填你自己申请的',
+				client_secret: '填你自己申请的',
+				detect_direction: true,
+				type: '标准' as '高精度' | '高精度含坐标' | '标准' | '标准含坐标', //没有实现根据坐标还原文本格式
+				type_action: {
+					标准: 'general_basic',
+					标准含坐标: 'general',
+					高精度: 'accurate_basic',
+					高精度含坐标: 'accurate'
 				}
-			],
-			url: 'https://api.openl.club/group/translate',
-			apikey: '填你自己申请的',
-			services: services,
-			use_services: ['deepl']
-		}
-	],
-	languages: [
-		{ name: Language.中文, default: 'zh', fsou: 'Chinese', wechat: 'zh_CN', youdao: 'zh-CHS', metaAI: 'zho_Hans' },
-		{ name: Language.英语, default: 'en', fsou: 'English', wechat: 'en_US', metaAI: 'eng_Latn' },
-		{ name: Language.日语, default: 'ja', fsou: 'Japanese', wechat: '-', metaAI: 'jpn_Jpan' },
-		{ name: Language.韩语, default: 'ko', fsou: 'Korean', baidu: 'kor', openl: '-', caiyun: '-', wechat: '-', metaAI: 'kor_Hang' },
-		{ name: Language.俄语, default: 'ru', fsou: 'Russian', caiyun: '-', wechat: '-', metaAI: 'rus_Cyrl' },
-		{ name: Language.德语, default: 'de', fsou: 'German', caiyun: '-', wechat: '-', metaAI: 'deu_Latn' },
-		{ name: Language.法语, default: 'fr', fsou: 'French', baidu: 'fra', caiyun: '-', wechat: '-', metaAI: 'fra_Latn' }
-	]
+			},
+			{
+				enable: true,
+				name: 'paddocr',
+				label: '飞桨OCR - 自建',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'url', label: '接口地址', type: 'input', required: true }
+				],
+				url: 'https://你自己的服务器地址/api/v2/paddocr'
+			}
+		],
+		translate: [ // 调整此处顺序可改变页面显示顺序，也可自行实现相关排序逻辑
+			{
+				enable: true,
+				name: 'youdao',
+				label: '有道翻译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'appKey', label: '应用ID', type: 'password', required: true },
+					{ name: 'key', label: '应用密钥(key)', type: 'password', required: true }
+				],
+				url: 'http://openapi.youdao.com/api',
+				appKey: '填你自己申请的',
+				key: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'baidu',
+				label: '百度翻译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'appid', label: '应用编号(appid)', type: 'password', required: true },
+					{ name: 'secret', label: '应用密钥(secret)', type: 'password', required: true }
+				],
+				url: 'https://fanyi-api.baidu.com/api/trans/vip/translate',
+				appid: '填你自己申请的',
+				secret: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'google',
+				label: '谷歌翻译',
+				zh2en_enable: true,
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'url', label: '访问地址(URL)', type: 'input', required: true },
+					{ name: 'projectId', label: '项目编号(projectId)', type: 'password', required: true },
+					{ name: 'apiKey', label: 'Api Key', type: 'password', required: true }
+				],
+				url: 'https://你自己的服务器地址/api/v2/google/trans',
+				projectId: '填你自己申请的',
+				apiKey: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'tencent',
+				label: '腾讯翻译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'secretId', label: 'secretId', type: 'password', required: true },
+					{ name: 'secretKey', label: 'secretKey', type: 'password', required: true }
+				],
+				url: 'tmt.tencentcloudapi.com',
+				region: 'ap-chengdu',
+				secretId: '填你自己申请的',
+				secretKey: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'metaAI',
+				label: 'Facebook Meta AI - 自建',
+				ui: [{ name: 'enable', label: '是否启用', type: 'switch' }],
+				url: 'https://你的服务器地址/api/v2/meta-ai'
+			},
+			{
+				enable: true,
+				name: 'wechat',
+				label: '微信翻译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'appid', label: 'appid', type: 'password', required: true },
+					{ name: 'secret', label: 'secret', type: 'password', required: true }
+				],
+				url: 'https://api.weixin.qq.com/cgi-bin',
+				appid: '填你自己申请的',
+				secret: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'caiyun',
+				label: '彩云小译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'token', label: 'token', type: 'password', required: true }
+				],
+				url: 'http://api.interpreter.caiyunai.com/v1/translator',
+				token: '填你自己申请的'
+			},
+			{
+				enable: true,
+				name: 'fsou',
+				label: 'F搜翻译',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' }
+				],
+				url: 'https://fsoufsou.com/search-engine-listing/v1/dictionary/translate'
+			},
+			{
+				enable: false,
+				name: 'openl',
+				label: 'OpenL',
+				ui: [
+					{ name: 'enable', label: '是否启用', type: 'switch' },
+					{ name: 'apikey', label: 'apikey', type: 'password', required: true },
+					{
+						name: 'use_services', label: '服务', type: 'select', multi: true, options: services.map(x => {
+							return { label: x.zh, value: x.en }
+						})
+					}
+				],
+				url: 'https://api.openl.club/group/translate',
+				apikey: '填你自己申请的',
+				services: services,
+				use_services: ['deepl']
+			}
+		],
+		languages: [
+			{ name: Language.中文, default: 'zh', fsou: 'Chinese', wechat: 'zh_CN', youdao: 'zh-CHS', metaAI: 'zho_Hans' },
+			{ name: Language.英语, default: 'en', fsou: 'English', wechat: 'en_US', metaAI: 'eng_Latn' },
+			{ name: Language.日语, default: 'ja', fsou: 'Japanese', wechat: '-', metaAI: 'jpn_Jpan' },
+			{ name: Language.韩语, default: 'ko', fsou: 'Korean', baidu: 'kor', openl: '-', caiyun: '-', wechat: '-', metaAI: 'kor_Hang' },
+			{ name: Language.俄语, default: 'ru', fsou: 'Russian', caiyun: '-', wechat: '-', metaAI: 'rus_Cyrl' },
+			{ name: Language.德语, default: 'de', fsou: 'German', caiyun: '-', wechat: '-', metaAI: 'deu_Latn' },
+			{ name: Language.法语, default: 'fr', fsou: 'French', baidu: 'fra', caiyun: '-', wechat: '-', metaAI: 'fra_Latn' }
+		]
+	}
 } as IConfig
 ```
 
