@@ -17,7 +17,8 @@
 		"node-screenshots": "0.0.14",
 		"color": "4.2.3",
 		"node-addon-api": "5.1.0",
-		"peggy": "2.0.1"
+		"peggy": "2.0.1",
+		"node-selection": "0.2.0-alpha.0"
 	},
 	"devDependencies": {
 		"@electron/rebuild": "3.2.10",
