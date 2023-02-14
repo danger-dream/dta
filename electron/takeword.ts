@@ -1,8 +1,7 @@
-import { BrowserWindow, ipcMain, Point, screen, clipboard } from 'electron'
+import { BrowserWindow, ipcMain, Point, screen } from 'electron'
 import { enable } from '@electron/remote/main'
 import { join } from 'node:path'
 import win32, { MouseAction, MouseButton } from './win32'
-import { getSelection, Selection } from 'node-selection'
 import { callRightMouseAction, getRightMouseActions } from './RightMouseAction'
 import Store from './store'
 
@@ -12,7 +11,7 @@ const win_info_catch = {} as Record<number, boolean>
 const winHeight = 22 + 10 * 2
 const winWidht = 22 + 10
 
-const sleep = (time = 100) => new Promise(resolve => setTimeout(resolve, time))
+//const sleep = (time = 100) => new Promise(resolve => setTimeout(resolve, time))
 
 function isWinRect() {
 	if (!win || win.isDestroyed() || !win.isVisible()) return false
@@ -152,42 +151,14 @@ export default async function (store: Store) {
 					return
 				}
 			}
-			
-			const point = screen.getCursorScreenPoint()
-			/*const old = {
-				text: clipboard.readText(),
-				rtf: clipboard.readRTF(),
-				html: clipboard.readHTML(),
-				img: clipboard.readImage()
-			}
-			clipboard.writeText('')*/
-			let selection: Selection
-			try {
-				selection = await getSelection()
-			} catch {
-			}
-			if (!selection || !selection.process?.pid) {
+			const selection = win32.getSelection()
+			if (!selection || !selection.pid) {
 				handlePointHideWin()
 				return
 			}
 			let text = selection.text
-			/*win32.keyToggle(win32.KeyCodes.ctrl)
-			await sleep(10)
-			win32.keyToggle(win32.KeyCodes.c)
-			await sleep(10)
-			win32.keyToggle(win32.KeyCodes.c, true)
-			await sleep(10)
-			win32.keyToggle(win32.KeyCodes.ctrl, true)
-			await sleep()*/
-			//const text = clipboard.readText().trim()
-			/*try {
-				old.text && clipboard.writeText(old.text)
-				old.rtf && clipboard.writeRTF(old.rtf)
-				old.html && clipboard.writeHTML(old.html)
-				old.img && clipboard.writeImage(old.img)
-			} catch {}*/
 			if (text && text.length >= 3) {
-				showWin(point, text).catch()
+				showWin(screen.getCursorScreenPoint(), text).catch()
 			} else {
 				handlePointHideWin()
 			}

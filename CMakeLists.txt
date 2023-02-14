@@ -12,4 +12,4 @@ include_directories(
 add_executable(dta
 	electron/win32/main.cpp
 	electron/win32/main.hpp
-	)
+	electron/win32/selection.cpp electron/win32/selection.hpp)

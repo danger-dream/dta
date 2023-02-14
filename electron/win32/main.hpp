@@ -1,4 +1,5 @@
 #include <napi.h>
+#include <node_api.h>
 #include <windows.h>
 #include <algorithm>
 #include <array>

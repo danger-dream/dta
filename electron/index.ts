@@ -37,6 +37,12 @@ app.whenReady().then(async () => {
 	if (store.trayMenu.length > 0) {
 		store.trayMenu.push(...[
 			{ type: 'separator' },
+			{
+				label: '重启', click: () => {
+					app.relaunch()
+					app.exit(0)
+				}
+			},
 			{ label: '退出', click: () => app.exit(0) }
 		] as any)
 		const tray = new Tray(join(store.publicPath, 'favicon.ico'))

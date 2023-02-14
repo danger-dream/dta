@@ -1,4 +1,6 @@
+#include <string>
 #include "main.hpp"
+#include "selection.hpp"
 
 void onMainThread(Napi::Env env, Napi::Function function, MouseEventContext *pMouseEvent) {
 	auto nCode = pMouseEvent->nCode;
@@ -402,7 +404,21 @@ Napi::Value getCaretPos(const Napi::CallbackInfo &info) {
 	}
 }
 
+//  node-selection
+Napi::Value GetSelection(const Napi::CallbackInfo &info) {
+	auto env = info.Env();
+	selection::Selection sel{};
+	if (selection::GetSelection(&sel)) {
+		Napi::Object selection = Napi::Object::New(env);
+		selection.Set("text", Napi::String::New(env, sel.text));
+		selection.Set("pid", Napi::Number::New(env, sel.pid));
+		return selection;
+	}
+	return env.Undefined();
+}
+
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+	selection::Initialize();
 	exports["createMouseHook"] = Napi::Function::New(env, createMouseHook);
 	exports["enableMouseMove"] = Napi::Function::New(env, enableMouseMove);
 	exports["stopMouseHook"] = Napi::Function::New(env, _stopMouseHook);
@@ -416,6 +432,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	exports["killProcess"] = Napi::Function::New(env, killProcess);
 	exports["getDoubleClickTime"] = Napi::Function::New(env, getDoubleClickTime);
 	exports["getCaretPos"] = Napi::Function::New(env, getCaretPos);
+	exports["getSelection"] = Napi::Function::New(env, GetSelection);
 	
 	Napi::Object KeyCodeMap = Napi::Object::New(env);
 	for (const auto &k: keyCodes) {

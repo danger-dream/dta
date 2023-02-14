@@ -38,6 +38,11 @@ export declare interface IProcess {
 	path?: string
 }
 
+export declare interface Selection {
+	text: string
+	pid: number
+}
+
 export type KeyboardRegularButton =
 	| 'backspace'
 	| 'tab'
@@ -198,6 +203,8 @@ interface win32 {
 	getDoubleClickTime(): number
 	
 	getCaretPos(): undefined | { x: number, y: number }
+	
+	getSelection(): Selection
 	
 	KeyCodes: Record<KeyboardRegularButton, number>
 }
