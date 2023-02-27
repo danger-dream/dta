@@ -17,7 +17,12 @@
 		"node-screenshots": "0.0.14",
 		"color": "4.2.3",
 		"node-addon-api": "5.1.0",
-		"peggy": "2.0.1"
+		"peggy": "2.0.1",
+		"ffi-napi": "4.0.3",
+		"ref-napi": "3.0.3",
+		"ref-wchar-napi": "1.0.3",
+		"iconv": "3.0.1",
+		"safer-buffer": "2.1.2"
 	},
 	"devDependencies": {
 		"@electron/rebuild": "3.2.10",

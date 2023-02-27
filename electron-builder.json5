@@ -15,6 +15,14 @@
 		{
 			"from": "pack/ShareX.exe",
 			"to": "ShareX.exe"
+		},
+		{
+			"from": "pack/ahkh2x64.dll",
+			"to": "ahkh2x64.dll"
+		},
+		{
+			"from": "pack/Mac.ahk",
+			"to": "Mac.ahk"
 		}
 	],
 	"win": {
