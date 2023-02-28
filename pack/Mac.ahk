@@ -10,25 +10,22 @@ title := "Mac键盘映射"
 #UseHook
 A_MenuMaskKey := "vkFF"
 
-^!+F12::							;给划词软件调用的快捷键
-{
-	A_Clipboard := ""
-	Send "^c"
-	if (ClipWait(2)){
-		Send "^+{F3}"
-	}
-	Return
-}
-
-
 LAlt & Tab::AltTab
 Shift::ShiftAltTab
 
 #a::return
-#a UP::Send "^+{F1}"                 ;输入翻译 win + a -> ctrl + shift + f1
+#a UP::                 ;输入翻译 win + a -> ctrl + shift + f1
+{
+	js_key_callback('inputTranslate')
+	return
+}
 
 #s::return
-#s UP::Send "^+{F2}"                 ;ocr翻译 win + s -> ctrl + shift + f2 
+#s UP::                 ;ocr翻译 win + s -> ctrl + shift + f2
+{
+	js_key_callback('ocrTranslate')
+	return
+}
 
 #d::return
 #d UP::                              ;要硬说成划词翻译也不是不行 win + d -> ctrl + shift + f3
@@ -36,7 +33,7 @@ Shift::ShiftAltTab
 	A_Clipboard := ""
 	Send "^c"
 	if (ClipWait(2)){
-		Send "^+{F3}"
+		js_key_callback('copyAndTranslate')
 	}
 	Return
 }
@@ -70,14 +67,14 @@ Shift::ShiftAltTab
 !3::Send "^3"
 !4::Send "^4"
 !5::Send "^5"
-!6::Send "^6" 
-!7::Send "^7" 
-!8::Send "^8" 
+!6::Send "^6"
+!7::Send "^7"
+!8::Send "^8"
 !9::Send "^9"
 
-!z::Send "^z"     ;alt + z -> ctrl + z 
+!z::Send "^z"     ;alt + z -> ctrl + z
 !r::Send "^r"     ;chrome刷新页面 alt + r -> ctrl + r
-!+z::             ;chrome恢复上次关闭的页面 alt + shift + z -> ctrl + shift + t 
+!+z::             ;chrome恢复上次关闭的页面 alt + shift + z -> ctrl + shift + t
 {
 	if (WinActive("ahk_exe chrome.exe") != 0 || WinActive("ahk_exe msedge.exe") != 0) {
 		Send "^+t"

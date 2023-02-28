@@ -164,6 +164,9 @@ export type KeyboardRegularButton =
 	| '\'';
 
 interface win32 {
+	
+	registrMethod(fn: Function): number
+	
 	createMouseHook(
 		func: (params: { action: MouseAction, x: number, y: number, btn: MouseButton, delta: WheelDirection }) => void
 	): boolean

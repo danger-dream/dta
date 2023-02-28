@@ -28,6 +28,13 @@ struct DisplayRect {
 	int dmPelsHeight = 0;
 };
 
+Napi::ThreadSafeFunction jsfn;
+
+struct AHKEventContext {
+public:
+	std::string params;
+};
+
 struct MouseEventContext {
 public:
 	int nCode;

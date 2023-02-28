@@ -54,6 +54,27 @@ export default defineConfig(() => {
 					}
 				}
 			]),
+			electron([
+				{
+					entry: 'electron/ahk.ts',
+					onstart() {
+					
+					},
+					vite: {
+						build: {
+							sourcemap: false,
+							minify: false,
+							outDir: 'dist-electron',
+							target: 'node16',
+							chunkSizeWarningLimit: Infinity,
+							reportCompressedSize: false,
+							rollupOptions: {
+								external: Object.keys('dependencies' in pkg ? pkg.dependencies : {})
+							}
+						}
+					}
+				}
+			]),
 			renderer({ nodeIntegration: true })
 		],
 		resolve: {

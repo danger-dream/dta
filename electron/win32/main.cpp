@@ -2,6 +2,43 @@
 #include "main.hpp"
 #include "selection.hpp"
 
+std::string WCharToMByte(LPCWSTR lpcwszStr) {
+	std::string str;
+	DWORD dwMinSize = 0;
+	LPSTR lpszStr = NULL;
+	dwMinSize = WideCharToMultiByte(CP_OEMCP, NULL, lpcwszStr, -1, NULL, 0, NULL, FALSE);
+	if (0 == dwMinSize) {
+		return FALSE;
+	}
+	lpszStr = new char[dwMinSize];
+	WideCharToMultiByte(CP_OEMCP, NULL, lpcwszStr, -1, lpszStr, dwMinSize, NULL, FALSE);
+	str = lpszStr;
+	delete[] lpszStr;
+	return str;
+}
+
+void onAHKMainThread(Napi::Env env, Napi::Function function, AHKEventContext *pEvent) {
+	auto params = pEvent->params;
+	delete pEvent;
+	Napi::HandleScope scope(env);
+	function.Call(env.Global(), {Napi::String::New(env, params)});
+}
+
+void invokeNodeFunc(LPCWSTR params) {
+	std::string txt = WCharToMByte(params);
+	auto context = new AHKEventContext();
+	context->params = txt;
+	jsfn.NonBlockingCall(context, onAHKMainThread);
+	//jsfn.NonBlockingCall(onMainThread1);
+}
+
+Napi::Number registrMethod(const Napi::CallbackInfo &info) {
+	jsfn = Napi::ThreadSafeFunction::New(info.Env(), info[0].As<Napi::Function>(), "AutoHotKey Thread", 512, 1, [](Napi::Env) {
+	
+	});
+	return Napi::Number::New(info.Env(), (unsigned long long) &invokeNodeFunc);
+}
+
 void onMainThread(Napi::Env env, Napi::Function function, MouseEventContext *pMouseEvent) {
 	auto nCode = pMouseEvent->nCode;
 	auto wParam = pMouseEvent->wParam;
@@ -419,6 +456,7 @@ Napi::Value GetSelection(const Napi::CallbackInfo &info) {
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 	selection::Initialize();
+	exports["registrMethod"] = Napi::Function::New(env, registrMethod);
 	exports["createMouseHook"] = Napi::Function::New(env, createMouseHook);
 	exports["enableMouseMove"] = Napi::Function::New(env, enableMouseMove);
 	exports["stopMouseHook"] = Napi::Function::New(env, _stopMouseHook);

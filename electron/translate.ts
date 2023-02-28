@@ -1,8 +1,10 @@
-import { BrowserWindow, clipboard, dialog, ipcMain, Menu, MenuItem, nativeImage, screen } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, MenuItem, nativeImage, screen } from 'electron'
 import { enable } from '@electron/remote/main'
 import screenCapture, { Init } from './screen-capture'
 import { join } from 'node:path'
 import Store from './store'
+import cluster from 'node:cluster'
+
 
 let win: BrowserWindow | null = null
 const winWidth = 450
@@ -116,13 +118,15 @@ export default async function (store: Store) {
 	})
 	
 	/** 输入文本翻译 ctrl + alt + shift + f1 */
-	store.registerShortcut('CommandOrControl+Shift+F1', () => {
+	function inputTrans() {
 		if (win.isVisible()) {
 			win.hide()
 			return
 		}
 		store.showMainWindow()
-	})
+	}
+	
+	store.registerShortcut('CommandOrControl+Shift+F1', () => inputTrans)
 	
 	/** ocr后翻译 ctrl + alt + shitf + f2 */
 	store.registerShortcut('CommandOrControl+Shift+F2', () => invokeScreenshot(true, true))
@@ -154,4 +158,27 @@ export default async function (store: Store) {
 		{ label: '截图/取色', accelerator: 'CommandOrControl+Shift+F4', click: () => invokeScreenshot(false, false) },
 		{ label: 'OCR文本识别', accelerator: 'CommandOrControl+Shift+F5', click: () => invokeScreenshot(true, false) }
 	] as any)
+	
+	function startWk() {
+		cluster.setupPrimary({ exec: join(__dirname, 'ahk.js') })
+		const wk = cluster.fork({ CUR_CWD: app.isPackaged ? process.resourcesPath : join(__dirname, '../pack') })
+		wk.on('message', function (msg) {
+			try {
+				if (msg.action === 'inputTranslate') {
+					inputTrans()
+				} else if (msg.action === 'ocrTranslate') {
+					invokeScreenshot(true, true)
+				} else if (msg.action === 'copyAndTranslate') {
+					copyTrans()
+				}
+			} catch {
+			}
+		})
+		wk.on('exit', function () {
+			console.log('exit')
+			setTimeout(startWk, 1000)
+		})
+	}
+	
+	startWk()
 }
