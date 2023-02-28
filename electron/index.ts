@@ -1,7 +1,7 @@
 import { app, globalShortcut, Menu, Tray } from 'electron'
 import { initialize } from '@electron/remote/main'
 import { join } from 'node:path'
-import ahk from './ahk'
+//import ahk from './ahk'
 import Translate from './translate'
 import Takeword from './takeword'
 import Store from './store'
@@ -31,7 +31,8 @@ app.whenReady().then(async () => {
 		} catch {
 		}
 	})
-	await ahk()
+	//不稳定
+	//await ahk()
 	await Translate(store)
 	await Takeword(store)
 	
