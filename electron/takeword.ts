@@ -156,7 +156,7 @@ export default async function (store: Store) {
 				handlePointHideWin()
 				return
 			}
-			let text = selection.text
+			let text = (selection.text + '').trim()
 			if (text && text.length >= 3) {
 				showWin(screen.getCursorScreenPoint(), text).catch()
 			} else {
