@@ -9,6 +9,9 @@ export default {
 		return length >= 4 && /^(((ht|f)tps?):\/\/)?([^!@#$%^&*?.\s-]([^!@#$%^&*?.\s]{0,63}[^!@#$%^&*?.\s])?\.)+[a-z]{2,6}\/?/.test(text)
 	},
 	async call(text: string) {
+		if (!text.startsWith('http')) {
+			text = `https://${ text }`
+		}
 		shell.openExternal(text).catch()
 	}
 }

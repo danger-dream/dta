@@ -3,17 +3,14 @@ import Store from './store'
 import { ITranslate, OcrTranslateConfig } from '@/types'
 import { localUrl } from '../helper'
 import baidu from './baidu'
-import fsou from './fsou'
-import openl from './openl'
 import tencent from './tencent'
 import wechat from './wechat'
 import caiyun from './caiyun'
 import google from './google'
 import youdao from './youdao'
-import metaAI from './metaAI'
 
 const crypto = window.require('crypto')
-const map: Record<string, (conf: OcrTranslateConfig, text: string, from: string, to: string) => Promise<string | Record<string, any>>> = { baidu, fsou, openl, tencent, metaAI, wechat, caiyun, google, youdao }
+const map: Record<string, (conf: OcrTranslateConfig, text: string, from: string, to: string) => Promise<string | Record<string, any>>> = { baidu, tencent, wechat, caiyun, google, youdao }
 const store = new Store('history', 'Desktop-Tools-Assistant-History')
 const historys = store.get('list', []) as { id: string, text: string, from: string, to: string, result: any }[]
 const historyMap = store.get('map', {}) as Record<string, number>

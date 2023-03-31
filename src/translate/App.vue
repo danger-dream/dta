@@ -125,7 +125,7 @@ async function transItem(conf: OcrTranslateConfig, from: Language, to: Language,
 	} catch (e: any) {
 		if (id === trans_task_id) {
 			item.status = false
-			item.text = '翻译接口调用错误: \n' + e.message + '\n' + e.stack
+			item.text = '翻译接口调用错误: \n' + conf.url + '\n' + e.message + '\n' + e.stack
 		}
 	}
 	item.timestamp = Date.now() - st

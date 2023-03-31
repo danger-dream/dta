@@ -1,31 +1,18 @@
 export declare interface Languages extends Record<string, any> {
 	name: string
 	default: string
-	fsou?: string
 	baidu?: string
 	tencent?: string
-	openl?: string
 	google?: string
 	caiyun?: string
 	wechat?: string
 	youdao?: string
-	metaAI?: string
-}
-
-export declare interface UIConfig {
-	name: string
-	label: string
-	type: 'switch' | 'input' | 'password' | 'select'
-	required?: boolean
-	multi?: boolean
-	options?: string[] | { label: string, value: any }[]
 }
 
 export declare interface OcrTranslateConfig extends Record<string, any> {
 	enable: boolean,
 	name: string,
 	label: string,
-	ui: UIConfig[]
 	url: string
 	local_url?: string
 	zh2en_enable?: boolean

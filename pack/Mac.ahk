@@ -38,7 +38,7 @@ Shift::ShiftAltTab
 	Return
 }
 
-#HotIf WinActive("ahk_exe webstorm64.exe") == 0 && WinActive("ahk_exe clion64.exe") == 0 && WinActive("ahk_exe pycharm64.exe") == 0
+#HotIf WinActive("ahk_exe webstorm64.exe") == 0 && WinActive("ahk_exe clion64.exe") == 0 && WinActive("ahk_exe pycharm64.exe") == 0 && WinActive("ahk_exe goland64.exe") == 0
 
 !c::Send "^c"     ;alt + c -> ctrl + c
 !x::Send "^x"     ;alt + x -> ctrl + x
@@ -110,7 +110,7 @@ Shift::ShiftAltTab
 #Down::Send "{PgDn}"
 #HotIf
 
-#HotIf WinActive("ahk_exe webstorm64.exe") != 0 or WinActive("ahk_exe clion64.exe") != 0 or WinActive("ahk_exe pycharm64.exe") != 0
+#HotIf WinActive("ahk_exe webstorm64.exe") != 0 or WinActive("ahk_exe clion64.exe") != 0 or WinActive("ahk_exe pycharm64.exe") != 0 or WinActive("ahk_exe goland64.exe") != 0
 #Left::Send "^{Left}"
 #+Left::Send "^+{Left}"
 #Right::Send "^{Right}"
